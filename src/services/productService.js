@@ -1,6 +1,6 @@
 import axiosInstance from "./axiosInstance";
 
-// GET ALL PRODUCTS
+
 export const getAllProducts = async () => {
 
   const res = await axiosInstance.get(
@@ -13,7 +13,6 @@ export const getAllProducts = async () => {
 };
 
 
-// GET PRODUCT BY ID
 export const getProductById = async (id) => {
 
   const res = await axiosInstance.get(
@@ -24,9 +23,6 @@ export const getProductById = async (id) => {
 };
 
 
-// CREATE PRODUCT
-
-// GET PRODUCTS BY CATEGORY
 export const getProductsByCategory = async (
   categoryName
 ) => {
@@ -45,4 +41,21 @@ export const getProductsByCategory = async (
         ?.toLowerCase() ===
       categoryName?.toLowerCase()
   );
+};
+export const createProduct =
+  async (formData) => {
+
+    const res =
+      await axiosInstance.post(
+        "/products/create",
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data",
+          },
+        }
+      );
+
+    return res.data;
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
+import "../styles/UserBoard.css";
 import "../styles/UserDashboard.css";
-
 import {
   getAllProducts,
   getProductsByCategory

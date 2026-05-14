@@ -22,7 +22,7 @@ export const getActiveCategories = async () => {
 
     }
 
-    // CASE 2
+  
     if (
       Array.isArray(res.data?.data)
     ) {
@@ -31,7 +31,7 @@ export const getActiveCategories = async () => {
 
     }
 
-    // CASE 3
+  
     if (
       Array.isArray(res.data)
     ) {

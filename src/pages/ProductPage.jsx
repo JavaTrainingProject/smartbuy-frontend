@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../services/axiosInstance";
-import {
-  createProduct,
-  getAllProducts,
-} from "../services/productService";
+import { getAllProducts, getProductsByCategory, createProduct} from "../services/productService";
 
 import "../styles/product.css";
 
