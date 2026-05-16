@@ -1,20 +1,20 @@
+
+
 import axiosInstance from "./axiosInstance";
 
 
-export const getAllProducts = async () => {
-
-  const res = await axiosInstance.get(
-    "/products?page=0&size=50"
+export const getAllProducts=async(
+  page=0, size=6
+) => {
+  const res=await axiosInstance.get(
+    `/products?page=${page}&size=${size}`
   );
+  console.log("Product Response:",res.data);
 
-  console.log("PRODUCT RESPONSE:", res.data);
-
-  return res.data?.data?.content || [];
+  return res;
 };
 
-
 export const getProductById = async (id) => {
-
   const res = await axiosInstance.get(
     `/products/${id}`
   );
@@ -22,11 +22,9 @@ export const getProductById = async (id) => {
   return res.data?.data;
 };
 
-
 export const getProductsByCategory = async (
   categoryName
 ) => {
-
   const res = await axiosInstance.get(
     "/products?page=0&size=50"
   );
@@ -36,15 +34,14 @@ export const getProductsByCategory = async (
 
   return products.filter(
     (product) =>
-
       product.categoryName
         ?.toLowerCase() ===
       categoryName?.toLowerCase()
   );
 };
+
 export const createProduct =
   async (formData) => {
-
     const res =
       await axiosInstance.post(
         "/products/create",
@@ -53,7 +50,7 @@ export const createProduct =
           headers: {
             "Content-Type":
               "multipart/form-data",
-          },
+          }
         }
       );
 

@@ -9,6 +9,7 @@ function ProductPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const [showModal, setShowModal] = useState(false);
 
@@ -28,7 +29,7 @@ function ProductPage() {
     price: "",
   });
 
-  const [imageFile, setImageFile] = useState(null);
+ const [imageFiles, setImageFiles] = useState([]);
 
   
   useEffect(() => {
@@ -165,9 +166,9 @@ function ProductPage() {
 
     form.append("product", JSON.stringify(productObj));
 
-    if (imageFile) {
-      form.append("images", imageFile);
-    }
+    imageFiles.forEach((file) => {
+  form.append("images", file);
+});
 
     try {
 
@@ -349,12 +350,13 @@ function ProductPage() {
               />
 
         
-              <input
-                type="file"
-                onChange={(e) =>
-                  setImageFile(e.target.files[0])
-                }
-              />
+             <input
+  type="file"
+  multiple
+  onChange={(e) =>
+    setImageFiles([...e.target.files])
+  }
+/>
 
         
               <div className="modal-actions">

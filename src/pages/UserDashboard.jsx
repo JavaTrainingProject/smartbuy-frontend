@@ -1,11 +1,19 @@
+
+
+
 import { useEffect, useState } from "react";
+
 import "../styles/UserBoard.css";
+
+import { useNavigate } from "react-router-dom";
+
 import "../styles/UserDashboard.css";
-import {
-  getAllProducts,
-  getProductsByCategory
-} from "../services/productService";
-import { getActiveCategories } from "../services/categoryService";
+
+import {getAllProducts, getProductsByCategory} from "../services/productService";
+
+import { getActiveCategories} from "../services/categoryService";
+
+import axiosInstance from "../services/axiosInstance";
 
 function UserDashboard() {
 
@@ -21,25 +29,45 @@ function UserDashboard() {
 
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const [page, setPage] = useState(0);
+
+  const [totalPages, setTotalPages] = useState(0);
+
+  const size = 6;
+
+  const navigate = useNavigate();
+
   useEffect(() => {
 
     fetchProducts();
 
     fetchCategories();
 
-  }, []);
+  }, [page]);
 
   const fetchProducts = async () => {
 
     try {
 
-      const res = await getAllProducts();
+      const res = await getAllProducts(page, size);
 
       console.log("ALL PRODUCTS:", res);
 
-      setProducts(res || []);
+      const productData =
+        res?.data?.data?.content || [];
 
-      setFilteredProducts(res || []);
+      const total =
+        res?.data?.data?.totalPages || 0;
+
+      setProducts(productData);
+
+      setFilteredProducts(productData);
+
+      setTotalPages(total);
 
     } catch (err) {
 
@@ -65,56 +93,44 @@ function UserDashboard() {
     }
   };
 
-  const handleCategoryClick = async (
-  category
-) => {
+  const handleCategoryClick = async (category) => {
 
-  setSelectedCategory(category);
+    setSelectedCategory(category);
 
-  const categoryName =
-    category.categoryName ||
-    category.category_name;
+    const categoryName =
+      category.categoryName ||
+      category.category_name;
 
-  console.log(
-    "SELECTED CATEGORY:",
-    categoryName
-  );
+    try {
 
-  try {
+      const filtered =
+        await getProductsByCategory(
+          categoryName
+        );
 
-    const filtered =
-      await getProductsByCategory(
-        categoryName
+      setFilteredProducts(filtered);
+
+      setPage(0);
+
+    } catch (error) {
+
+      console.log(
+        "CATEGORY FILTER ERROR:",
+        error
       );
 
-    console.log(
-      "FILTERED PRODUCTS:",
-      filtered
-    );
+      setFilteredProducts([]);
+    }
 
-    setFilteredProducts(filtered);
+    setShowDropdown(false);
+  };
 
-  } catch (error) {
-
-    console.log(
-      "CATEGORY FILTER ERROR:",
-      error
-    );
-
-    setFilteredProducts([]);
-
-  }
-
-  setShowDropdown(false);
-};
-  // SEARCH FILTER
   const handleSearch = (value) => {
 
     setSearchTerm(value);
 
     let filtered = products;
 
-    // CATEGORY FILTER
     if (selectedCategory) {
 
       filtered = filtered.filter(
@@ -133,19 +149,46 @@ function UserDashboard() {
       );
     }
 
-    // SEARCH FILTER
     filtered = filtered.filter(
 
       (product) =>
 
         product.name
           ?.toLowerCase()
-          .includes(
-            value.toLowerCase()
-          )
+          .includes(value.toLowerCase())
     );
 
     setFilteredProducts(filtered);
+
+    setPage(0);
+  };
+
+  const addToCart = async (product) => {
+
+    try {
+
+      const res = await axiosInstance.post(
+        "/cart/add",
+        {
+          productId: product.id,
+          quantity: 1,
+        }
+      );
+
+      console.log(
+        "ADD CART RESPONSE:",
+        res.data
+      );
+
+      navigate("/cart");
+
+    } catch (err) {
+
+      console.log(
+        "ADD CART ERROR:",
+        err
+      );
+    }
   };
 
   return (
@@ -155,7 +198,7 @@ function UserDashboard() {
       {/* TOP CONTROLS */}
       <div className="top-controls">
 
-        {/* CATEGORY DROPDOWN */}
+        {/* LEFT CATEGORY */}
         <div className="category-panel">
 
           <button
@@ -176,13 +219,15 @@ function UserDashboard() {
                 className="category-card"
                 onClick={() => {
 
-                  setFilteredProducts(products);
+                  fetchProducts();
 
                   setSelectedCategory(null);
 
                   setSearchTerm("");
 
                   setShowDropdown(false);
+
+                  setPage(0);
 
                 }}
               >
@@ -216,7 +261,16 @@ function UserDashboard() {
 
         </div>
 
-        {/* SEARCH BAR */}
+        {/* CENTER TITLE */}
+        <div className="products-heading">
+
+          <h1>
+            Products
+          </h1>
+
+        </div>
+
+        {/* RIGHT SEARCH */}
         <div className="search-box">
 
           <input
@@ -252,68 +306,134 @@ function UserDashboard() {
         {/* PRODUCTS */}
         {filteredProducts.length > 0 ? (
 
-          <div className="products-grid">
+          <>
 
-            {filteredProducts.map((product) => (
+            <div className="products-grid">
 
-              <div
-                key={product.id}
-                className="product-card"
-              >
+              {filteredProducts.map((product) => (
 
-                <img
-                  src={
-                    product.imageUrl ||
+                <div
+                  key={product.id}
+                  className="product-card"
+                  onClick={() => {
 
-                    "https://via.placeholder.com/300"
-                  }
-                  alt={product.name}
-                  className="product-img"
-                />
+                    setSelectedProduct(product);
 
-                <div className="product-content">
+                    setCurrentImageIndex(0);
 
-                  <h3 className="product-title">
+                  }}
+                >
 
-                    {product.name}
+                  <img
+                    src={
+                      product.images?.[0] ||
 
-                  </h3>
+                      product.imageUrl ||
 
-                  <p className="product-description">
+                      "https://via.placeholder.com/300"
+                    }
+                    alt={product.name}
+                    className="product-img"
+                  />
 
-                    {product.description}
+                  <div className="product-content">
 
-                  </p>
+                    <h3 className="product-title">
 
-                  <h4 className="product-price">
+                      {product.name}
 
-                    ₹{product.price}
+                    </h3>
 
-                  </h4>
+                    <p className="product-description">
 
-                  <div className="product-actions">
+                      {product.description}
 
-                    <button className="cart-btn">
+                    </p>
 
-                      Add Cart
+                    <h4 className="product-price">
 
-                    </button>
+                      ₹{product.price}
 
-                    <button className="wishlist-btn">
+                    </h4>
 
-                      Wishlist
+                    <div className="product-actions">
 
-                    </button>
+                      <button
+                        className="cart-btn"
+                        onClick={(e) => {
+
+                          e.stopPropagation();
+
+                          addToCart(product);
+
+                        }}
+                      >
+                        Add Cart
+                      </button>
+
+                      <button
+                        className="wishlist-btn"
+                        onClick={(e) =>
+                          e.stopPropagation()
+                        }
+                      >
+                        Wishlist
+                      </button>
+
+                    </div>
 
                   </div>
 
                 </div>
 
-              </div>
+              ))}
 
-            ))}
+            </div>
 
-          </div>
+            {/* PAGINATION */}
+            <div className="pagination-container">
+
+              <button
+                disabled={page === 0}
+                onClick={() =>
+                  setPage(page - 1)
+                }
+                className="page-btn"
+              >
+                Prev
+              </button>
+
+              {[...Array(totalPages)].map((_, index) => (
+
+                <button
+                  key={index}
+                  onClick={() =>
+                    setPage(index)
+                  }
+                  className={
+                    page === index
+                      ? "page-btn active-page"
+                      : "page-btn"
+                  }
+                >
+                  {index + 1}
+                </button>
+
+              ))}
+
+              <button
+                disabled={page + 1 === totalPages}
+                onClick={() =>
+                  setPage(page + 1)
+                }
+                className="page-btn"
+              >
+                Next
+              </button>
+
+            </div>
+
+          </>
 
         ) : (
 
@@ -330,6 +450,108 @@ function UserDashboard() {
         )}
 
       </div>
+
+      {/* PRODUCT MODAL */}
+      {selectedProduct && (
+
+        <div className="product-modal-overlay">
+
+          <div className="product-modal">
+
+            <button
+              className="close-btn"
+              onClick={() => {
+
+                setSelectedProduct(null);
+
+                setCurrentImageIndex(0);
+
+              }}
+            >
+              ✖
+            </button>
+
+            {/* PRODUCT IMAGE */}
+            <img
+              src={
+                selectedProduct.images?.[
+                  currentImageIndex
+                ] ||
+
+                selectedProduct.imageUrl ||
+
+                "https://via.placeholder.com/300"
+              }
+              alt={selectedProduct.name}
+              className="modal-product-img"
+            />
+
+            {/* IMAGE CONTROLS */}
+            {selectedProduct.images &&
+              selectedProduct.images.length > 1 && (
+
+              <div className="image-controls">
+
+                <button
+                  className="image-btn"
+                  onClick={() =>
+
+                    setCurrentImageIndex(
+
+                      currentImageIndex === 0
+
+                        ? selectedProduct.images.length - 1
+
+                        : currentImageIndex - 1
+                    )
+                  }
+                >
+                  ◀
+                </button>
+
+                <button
+                  className="image-btn"
+                  onClick={() =>
+
+                    setCurrentImageIndex(
+
+                      currentImageIndex ===
+                      selectedProduct.images.length - 1
+
+                        ? 0
+
+                        : currentImageIndex + 1
+                    )
+                  }
+                >
+                  ▶
+                </button>
+
+              </div>
+
+            )}
+
+            <div className="modal-product-content">
+
+              <h2>
+                {selectedProduct.name}
+              </h2>
+
+              <p>
+                {selectedProduct.description}
+              </p>
+
+              <h3>
+                ₹{selectedProduct.price}
+              </h3>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
   );
