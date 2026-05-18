@@ -1,21 +1,18 @@
+
 import { useEffect, useState } from "react";
 
 import "../styles/UserBoard.css";
+import "../styles/UserDashboard.css";
 
 import { useNavigate } from "react-router-dom";
 
-import "../styles/UserDashboard.css";
-<<<<<<< Updated upstream
 import Toast from "../components/Toast";
-import {getAllProducts,getProductsByCategory} from "../services/productService";
-import { getActiveCategories } from "../services/categoryService";
-import { addToWishlist } from "../services/wishlistService"
-=======
 
-import {getAllProducts, getProductsByCategory} from "../services/productService";
+import { getAllProducts, getProductsByCategory} from "../services/productService";
 
-import {getActiveCategories, getSubCategoriesByCategory} from "../services/categoryService";
->>>>>>> Stashed changes
+import { getActiveCategories, getSubCategoriesByCategory} from "../services/categoryService";
+
+import { addToWishlist } from "../services/wishlistService";
 
 import axiosInstance from "../services/axiosInstance";
 
@@ -25,38 +22,35 @@ function UserDashboard() {
 
   const [filteredProducts, setFilteredProducts] = useState([]);
 
-  const [categories, setCategories] =useState([]);
+  const [categories, setCategories] = useState([]);
 
-  const [subCategories, setSubCategories] =useState([]);
+  const [subCategories, setSubCategories] = useState([]);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const [selectedSubCategory, setSelectedSubCategory] =useState(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
 
-<<<<<<< Updated upstream
   const [searchTerm, setSearchTerm] = useState("");
+
   const [toast, setToast] = useState({
     show: false,
     message: "",
     type: ""
-});
-=======
-  const [showDropdown, setShowDropdown] =useState(false);
->>>>>>> Stashed changes
+  });
 
-  const [searchTerm, setSearchTerm] =useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const [selectedProduct,setSelectedProduct] =useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const [currentImageIndex,setCurrentImageIndex] =useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [page, setPage] = useState(0);
 
   const [totalPages, setTotalPages] = useState(0);
 
-  const size = 6;
-
   const [loading, setLoading] = useState(false);
+
+  const size = 6;
 
   const navigate = useNavigate();
 
@@ -66,44 +60,51 @@ function UserDashboard() {
 
     fetchCategories();
 
-  }, []);
+  }, [page]);
 
-  const showToast = (
-    message,
-    type
-) => {
+  const showToast = (message, type) => {
 
     setToast({
-        show: true,
-        message,
-        type
+      show: true,
+      message,
+      type
     });
 
     setTimeout(() => {
 
-        setToast({
-            show: false,
-            message: "",
-            type: ""
-        });
+      setToast({
+        show: false,
+        message: "",
+        type: ""
+      });
 
     }, 3000);
-};
-  }, [page]);
+  };
 
   const fetchProducts = async () => {
 
     try {
+
       setLoading(true);
 
       const res =
         await getAllProducts(page, size);
 
-      console.log( "ALL PRODUCTS:", res);
+      console.log(
+        "ALL PRODUCTS:",
+        res
+      );
 
-      const productData = res?.data?.data?.content || [];
+      let productData =
+        res?.data?.data?.content || [];
 
-      const total = res?.data?.data?.totalPages || 0;
+      // latest products first
+      productData = productData.sort(
+        (a, b) => b.id - a.id
+      );
+
+      const total =
+        res?.data?.data?.totalPages || 0;
 
       setProducts(productData);
 
@@ -113,272 +114,368 @@ function UserDashboard() {
 
     } catch (err) {
 
-      console.error("PRODUCT ERROR:", err);
-    }
-  finally {
-     setLoading(false);
-  }
-};
+      console.error(
+        "PRODUCT ERROR:",
+        err
+      );
 
-  
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
   const fetchCategories = async () => {
 
     try {
 
-      const res = await getActiveCategories();
+      const res =
+        await getActiveCategories();
 
-      console.log("CATEGORIES:", res);
+      console.log(
+        "CATEGORIES:",
+        res
+      );
 
       setCategories(res || []);
 
     } catch (err) {
 
-      console.error("CATEGORY ERROR:", err);
+      console.error(
+        "CATEGORY ERROR:",
+        err
+      );
     }
   };
 
   const handleCategoryClick =
     async (category) => {
 
-    setSelectedCategory(category);
+      setLoading(true);
 
-    setSelectedSubCategory(null);
+      try {
 
-    const categoryName =
-      category.categoryName || ategory.category_name;
+        setSelectedCategory(category);
 
-    try {
+        setSelectedSubCategory(null);
 
-     
-      const filtered =
-        await getProductsByCategory(categoryName);
+        const categoryName =
+          category.categoryName ||
+          category.category_name;
 
-      setFilteredProducts(filtered);
+        const response =
+          await getProductsByCategory(
+            categoryName
+          );
 
-     
-      const categoryId =
-        category.id || category.category_id;
-
-      const subRes =
-        await getSubCategoriesByCategory( categoryId );
-
-      console.log("SUBCATEGORY RESPONSE:", subRes.data );
-
-      let subList = [];
-
-      if (Array.isArray(subRes.data)) {
-
-        subList = subRes.data;
-
-      }
-      else if (
-        Array.isArray(subRes.data.data)
-      ) {
-
-        subList = subRes.data.data;
-
-      }
-      else if (
-        Array.isArray( subRes.data.data?.content )
-      ) {
-
-        subList = subRes.data.data.content;
-      }
-
-      setSubCategories(subList);
-
-      setPage(0);
-
-    } catch (error) {
-
-      console.log("CATEGORY FILTER ERROR:", error );
-
-      setFilteredProducts([]);
-
-      setSubCategories([]);
-    }
-
-    setShowDropdown(false);
-  };
-
-
-const handleSubCategoryClick = async (subCategory) => {
-
-  setLoading(true);
-
-  try {
-
-    
-    setSelectedSubCategory(subCategory);
-
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const subCategoryName =
-      subCategory.subCategoryName ||
-      subCategory.sub_category_name ||
-      subCategory.name;
-
-    
-    const filtered = products.filter(
-      (product) =>
-        (
-          product.subCategoryName ||
-          product.sub_category_name
-        )
-          ?.toLowerCase()
-          .trim() ===
-        subCategoryName.toLowerCase().trim()
-    );
-
-    setFilteredProducts(filtered);
-
-    setPage(0);
-
-  } catch (error) {
-
-    console.log("SUBCATEGORY ERROR:", error);
-
-    setFilteredProducts([]);
-
-  } finally {
-
-    setLoading(false);
-
-  }
-};
-  
- 
-
-  const handleSearch = async (value) => {
-
-  setLoading(true);
-
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  try {
-
-    setSearchTerm(value);
-
-    let filtered = products;
-
-    
-    if (selectedCategory) {
-
-      filtered = filtered.filter(
-        (product) =>
-          product.categoryName
-            ?.toLowerCase() ===
-          (
-            selectedCategory.categoryName ||
-            selectedCategory.category_name
-          )
-            ?.toLowerCase()
-      );
-    }
-
-    
-    if (selectedSubCategory) {
-
-      filtered = filtered.filter(
-        (product) =>
-          (
-            product.subCategoryName ||
-            product.sub_category_name
-          )
-            ?.toLowerCase() ===
-          (
-            selectedSubCategory.subCategoryName ||
-            selectedSubCategory.sub_category_name ||
-            selectedSubCategory.name
-          )
-            ?.toLowerCase()
-      );
-    }
-
-    
-    filtered = filtered.filter(
-      (product) =>
-        product.name
-          ?.toLowerCase()
-          .includes(value.toLowerCase())
-    );
-
-    setFilteredProducts(filtered);
-
-    setPage(0);
-
-<<<<<<< Updated upstream
-
-  
-const addToCart = async (product) => {
-=======
-  } catch (error) {
-
-    console.log("SEARCH ERROR:", error);
-
-  } finally {
-
-    setLoading(false);
-
-  }
-};
-
-  
-  const addToCart = async (product) => {
->>>>>>> Stashed changes
-
-    try {
-
-      const res =
-        await axiosInstance.post(
-          "/cart/add",
-          {
-            productId: product.id,
-            quantity: 1,
-          }
+        console.log(
+          "CATEGORY PRODUCTS:",
+          response
         );
 
-      console.log("ADD CART RESPONSE:", res.data );
+        let finalProducts =
+          response?.data?.data ||
+          response?.data ||
+          [];
 
-      navigate("/cart");
+        if (!Array.isArray(finalProducts)) {
 
-    } catch (err) {
+          finalProducts =
+            finalProducts?.content || [];
+        }
 
-<<<<<<< Updated upstream
-    console.log("ADD CART ERROR:", err);
+        // latest first
+        finalProducts = finalProducts.sort(
+          (a, b) => b.id - a.id
+        );
 
-  }
-};
+        setFilteredProducts(finalProducts);
 
-const handleWishlist = async (productId) =>{
-  try{
-    const response = await addToWishlist(productId);
-    showToast(response,"success");
-  }
-  catch(error){
-    console.log(error);
-    showToast("Failed to add product to wishlist","error");
-  }
-};
-      console.log(
-        "ADD CART ERROR:",
-        err
-      );
-=======
-      console.log( "ADD CART ERROR:", err );
-    }
->>>>>>> Stashed changes
-  };
+        setTotalPages(
+          Math.ceil(
+            finalProducts.length / size
+          )
+        );
 
+        const categoryId =
+          category.id ||
+          category.category_id;
+
+        const subRes =
+          await getSubCategoriesByCategory(
+            categoryId
+          );
+
+        console.log(
+          "SUBCATEGORY RESPONSE:",
+          subRes.data
+        );
+
+        let subList = [];
+
+        if (Array.isArray(subRes.data)) {
+
+          subList = subRes.data;
+
+        } else if (
+          Array.isArray(subRes.data.data)
+        ) {
+
+          subList = subRes.data.data;
+
+        } else if (
+          Array.isArray(
+            subRes.data.data?.content
+          )
+        ) {
+
+          subList =
+            subRes.data.data.content;
+        }
+
+        setSubCategories(subList);
+
+        setPage(0);
+
+      } catch (error) {
+
+        console.log(
+          "CATEGORY FILTER ERROR:",
+          error
+        );
+
+        setFilteredProducts([]);
+
+        setSubCategories([]);
+
+      } finally {
+
+        setLoading(false);
+
+        setShowDropdown(false);
+      }
+    };
+
+  const handleSubCategoryClick =
+    async (subCategory) => {
+
+      setLoading(true);
+
+      try {
+
+        setSelectedSubCategory(
+          subCategory
+        );
+
+        const subCategoryName =
+          (
+            subCategory.subCategoryName ||
+            subCategory.sub_category_name ||
+            subCategory.name
+          )
+            ?.toLowerCase()
+            .trim();
+
+        const categoryName =
+          selectedCategory.categoryName ||
+          selectedCategory.category_name;
+
+        const response =
+          await getProductsByCategory(
+            categoryName
+          );
+
+        let categoryProducts =
+          response?.data?.data ||
+          response?.data ||
+          [];
+
+        if (!Array.isArray(categoryProducts)) {
+
+          categoryProducts =
+            categoryProducts?.content || [];
+        }
+
+        const filtered =
+          categoryProducts.filter(
+            (product) =>
+              (
+                product.subCategoryName ||
+                product.sub_category_name
+              )
+                ?.toLowerCase()
+                .trim() ===
+              subCategoryName
+          );
+
+        console.log(
+          "FILTERED PRODUCTS:",
+          filtered
+        );
+
+        setFilteredProducts(filtered);
+
+        setTotalPages(
+          Math.ceil(
+            filtered.length / size
+          )
+        );
+
+        setPage(0);
+
+      } catch (error) {
+
+        console.log(
+          "SUBCATEGORY ERROR:",
+          error
+        );
+
+        setFilteredProducts([]);
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
+
+  const handleSearch =
+    async (value) => {
+
+      setLoading(true);
+
+      try {
+
+        setSearchTerm(value);
+
+        let filtered = [...products];
+
+        if (selectedCategory) {
+
+          filtered = filtered.filter(
+            (product) =>
+              product.categoryName
+                ?.toLowerCase() ===
+              (
+                selectedCategory.categoryName ||
+                selectedCategory.category_name
+              )
+                ?.toLowerCase()
+          );
+        }
+
+        if (selectedSubCategory) {
+
+          filtered = filtered.filter(
+            (product) =>
+              (
+                product.subCategoryName ||
+                product.sub_category_name
+              )
+                ?.toLowerCase() ===
+              (
+                selectedSubCategory.subCategoryName ||
+                selectedSubCategory.sub_category_name ||
+                selectedSubCategory.name
+              )
+                ?.toLowerCase()
+          );
+        }
+
+        filtered = filtered.filter(
+          (product) =>
+            product.name
+              ?.toLowerCase()
+              .includes(
+                value.toLowerCase()
+              )
+        );
+
+        setFilteredProducts(filtered);
+
+        setTotalPages(
+          Math.ceil(
+            filtered.length / size
+          )
+        );
+
+        setPage(0);
+
+      } catch (error) {
+
+        console.log(
+          "SEARCH ERROR:",
+          error
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
+
+  const addToCart =
+    async (product) => {
+
+      try {
+
+        const res =
+          await axiosInstance.post(
+            "/cart/add",
+            {
+              productId: product.id,
+              quantity: 1,
+            }
+          );
+
+        console.log(
+          "ADD CART RESPONSE:",
+          res.data
+        );
+
+        navigate("/cart");
+
+      } catch (err) {
+
+        console.log(
+          "ADD CART ERROR:",
+          err
+        );
+      }
+    };
+
+  const handleWishlist =
+    async (productId) => {
+
+      try {
+
+        const response =
+          await addToWishlist(
+            productId
+          );
+
+        showToast(
+          response,
+          "success"
+        );
+
+      } catch (error) {
+
+        console.log(error);
+
+        showToast(
+          "Failed to add product to wishlist",
+          "error"
+        );
+      }
+    };
+
+  
   return (
 
     <div className="dashboard-container">
 
-     
       <div className="top-controls">
 
-        
         <div className="category-panel">
 
           <button
@@ -396,12 +493,11 @@ const handleWishlist = async (productId) =>{
 
             <div className="dropdown-box">
 
-              
               <div
                 className="category-card"
-                onClick={() => {
+                onClick={async () => {
 
-                  fetchProducts();
+                  await fetchProducts();
 
                   setSelectedCategory(null);
 
@@ -414,13 +510,11 @@ const handleWishlist = async (productId) =>{
                   setShowDropdown(false);
 
                   setPage(0);
-
                 }}
               >
                 All Products
               </div>
 
-              
               {categories.map((cat) => (
 
                 <div
@@ -434,19 +528,20 @@ const handleWishlist = async (productId) =>{
                   }
                 >
 
-                  { cat.categoryName || cat.category_name }
+                  {
+                    cat.categoryName ||
+                    cat.category_name
+                  }
 
                 </div>
 
               ))}
 
             </div>
-
           )}
 
         </div>
 
-        
         <div className="products-heading">
 
           <h1>
@@ -455,7 +550,6 @@ const handleWishlist = async (productId) =>{
 
         </div>
 
-       
         <div className="search-box">
 
           <input
@@ -474,25 +568,20 @@ const handleWishlist = async (productId) =>{
 
       </div>
 
-  
       <div className="products-section">
 
-        
         {selectedCategory && (
 
           <h2 className="category-title">
 
             {
               selectedCategory.categoryName ||
-
               selectedCategory.category_name
             }
 
           </h2>
-
         )}
 
-       
         {subCategories.length > 0 && (
 
           <div className="subcategory-container">
@@ -507,21 +596,40 @@ const handleWishlist = async (productId) =>{
 
                 const categoryName =
                   selectedCategory.categoryName ||
-
                   selectedCategory.category_name;
 
-                const filtered =
-                  await getProductsByCategory(categoryName);
+                const response =
+                  await getProductsByCategory(
+                    categoryName
+                  );
+
+                let filtered =
+                  response?.data?.data ||
+                  response?.data ||
+                  [];
+
+                if (!Array.isArray(filtered)) {
+
+                  filtered =
+                    filtered?.content || [];
+                }
 
                 setFilteredProducts(filtered);
 
                 setSelectedSubCategory(null);
+
+                setTotalPages(
+                  Math.ceil(
+                    filtered.length / size
+                  )
+                );
+
+                setPage(0);
               }}
             >
               All
             </button>
 
-           
             {subCategories.map((sub) => (
 
               <button
@@ -536,17 +644,13 @@ const handleWishlist = async (productId) =>{
                     : "subcategory-btn"
                 }
                 onClick={() =>
-                  handleSubCategoryClick(
-                    sub
-                  )
+                  handleSubCategoryClick(sub)
                 }
               >
 
                 {
                   sub.subCategoryName ||
-
                   sub.sub_category_name ||
-
                   sub.name
                 }
 
@@ -555,49 +659,43 @@ const handleWishlist = async (productId) =>{
             ))}
 
           </div>
-
         )}
 
-      
-       
-{loading ? (
+        {loading ? (
 
-  <div className="loader-container">
+          <div className="loader-container">
 
-    <div className="loader"></div>
+            <div className="loader"></div>
 
-  </div>
+          </div>
 
-) : filteredProducts.length > 0 ? (
+        // ) : paginatedProducts.length > 0 ? (
+        ) : filteredProducts.length > 0 ? (
 
           <>
 
             <div className="products-grid">
 
-              {filteredProducts.map((product) => (
+             {filteredProducts.map((product) => (
 
                 <div
                   key={product.id}
                   className="product-card"
                   onClick={() => {
 
-                    setSelectedProduct(
-                      product
-                    );
+                    setSelectedProduct(product);
 
                     setCurrentImageIndex(0);
-
                   }}
                 >
-
-                  <img
+<img  
                     src={
-                      product.images?.[0] ||
-
-                      product.imageUrl ||
-
-                      "https://via.placeholder.com/300"
-                    }
+  Array.isArray(product.images) &&
+  product.images.length > 0
+    ? product.images[0]
+    : product.imageUrl ||
+      "https://via.placeholder.com/300"
+}
                     alt={product.name}
                     className="product-img"
                   />
@@ -631,24 +729,23 @@ const handleWishlist = async (productId) =>{
                           e.stopPropagation();
 
                           addToCart(product);
-
                         }}
                       >
                         🛒 Add Cart
                       </button>
 
-                    <button className="wishlist-btn" onClick={() => handleWishlist(product.id)}>
-
-                      Wishlist
-
-                    </button>
                       <button
                         className="wishlist-btn"
-                        onClick={(e) =>
-                          e.stopPropagation()
-                        }
+                        onClick={(e) => {
+
+                          e.stopPropagation();
+
+                          handleWishlist(
+                            product.id
+                          );
+                        }}
                       >
-                       ❤️ Wishlist
+                        ❤️ Wishlist
                       </button>
 
                     </div>
@@ -656,63 +753,52 @@ const handleWishlist = async (productId) =>{
                   </div>
 
                 </div>
-
               ))}
 
             </div>
 
-     
+          
 
-            <div className="pagination-container">
 
-  <button
-    disabled={page === 0}
-    onClick={() => setPage(page - 1)}
-    className="page-btn"
-  >
-    Prev
-  </button>
+{totalPages > 1 && (
 
-  {[...Array(totalPages)]
-    .slice(
-      Math.floor(page / 3) * 3,
-      Math.floor(page / 3) * 3 + 3
-    )
-    .map((_, index) => {
+  <div className="pagination-container">
 
-      const actualPage =
-        Math.floor(page / 3) * 3 + index;
+    <button
+      disabled={page === 0}
+      onClick={() =>
+        setPage(page - 1)
+      }
+      className="page-btn"
+    >
+      Prev
+    </button>
 
-      return (
+    <button
+      className="page-btn active-page"
+    >
+      {page + 1}
+    </button>
 
-        <button
-          key={actualPage}
-          onClick={() => setPage(actualPage)}
-          className={
-            page === actualPage
-              ? "page-btn active-page"
-              : "page-btn"
-          }
-        >
-          {actualPage + 1}
-        </button>
+    <button
+      disabled={
+        page + 1 >= totalPages
+      }
+      onClick={() =>
+        setPage(page + 1)
+      }
+      className="page-btn"
+    >
+      Next
+    </button>
 
-      );
-    })}
+  </div>
 
-  <button
-    disabled={page + 1 === totalPages}
-    onClick={() => setPage(page + 1)}
-    className="page-btn"
-  >
-    Next
-  </button>
-
-</div>
-
+)}
           </>
 
         ) : (
+
 
           <div className="empty-container">
 
@@ -727,14 +813,16 @@ const handleWishlist = async (productId) =>{
         )}
 
       </div>
-      {
-    toast.show && (
 
-        <Toast message={toast.message} type={toast.type} />
-    )
-}
+      {toast.show && (
 
-      {/* PRODUCT MODAL */}
+        <Toast
+          message={toast.message}
+          type={toast.type}
+        />
+
+      )}
+
       {selectedProduct && (
 
         <div className="product-modal-overlay">
@@ -748,7 +836,6 @@ const handleWishlist = async (productId) =>{
                 setSelectedProduct(null);
 
                 setCurrentImageIndex(0);
-
               }}
             >
               ✖
@@ -759,109 +846,112 @@ const handleWishlist = async (productId) =>{
                 selectedProduct.images?.[
                   currentImageIndex
                 ] ||
-
                 selectedProduct.imageUrl ||
-
                 "https://via.placeholder.com/300"
               }
               alt={selectedProduct.name}
               className="modal-product-img"
             />
 
-{selectedProduct.images &&
-  selectedProduct.images.length > 1 && (
+            {selectedProduct.images &&
+              selectedProduct.images.length > 1 && (
 
-  <>
+                <>
 
-   
-    <button
-      className="slider-arrow left-arrow"
-      onClick={() =>
-        setCurrentImageIndex(
+                  <button
+                    className="slider-arrow left-arrow"
+                    onClick={() =>
+                      setCurrentImageIndex(
 
-          currentImageIndex === 0
-            ? selectedProduct.images.length - 1
-            : currentImageIndex - 1
-        )
-      }
-    >
-      ❮
-    </button>
+                        currentImageIndex === 0
+                          ? selectedProduct.images.length - 1
+                          : currentImageIndex - 1
+                      )
+                    }
+                  >
+                    ❮
+                  </button>
 
-  
-    <button
-      className="slider-arrow right-arrow"
-      onClick={() =>
-        setCurrentImageIndex(
+                  <button
+                    className="slider-arrow right-arrow"
+                    onClick={() =>
+                      setCurrentImageIndex(
 
-          currentImageIndex ===
-          selectedProduct.images.length - 1
-            ? 0
-            : currentImageIndex + 1
-        )
-      }
-    >
-      ❯
-    </button>
+                        currentImageIndex ===
+                        selectedProduct.images.length - 1
+                          ? 0
+                          : currentImageIndex + 1
+                      )
+                    }
+                  >
+                    ❯
+                  </button>
 
-    <div className="slider-dots">
+                  <div className="slider-dots">
 
-      {selectedProduct.images.map(
-        (_, index) => (
+                    {selectedProduct.images.map(
+                      (_, index) => (
 
-          <span
-            key={index}
-            className={
-              currentImageIndex === index
-                ? "dot active-dot"
-                : "dot"
-            }
-            onClick={() =>
-              setCurrentImageIndex(index)
-            }
-          />
-        )
-      )}
+                        <span
+                          key={index}
+                          className={
+                            currentImageIndex === index
+                              ? "dot active-dot"
+                              : "dot"
+                          }
+                          onClick={() =>
+                            setCurrentImageIndex(index)
+                          }
+                        />
+                      )
+                    )}
 
-    </div>
+                  </div>
 
-  </>
-)}
+                </>
+              )}
 
-          <div className="modal-product-content">
+            <div className="modal-product-content">
 
-  <h2>
-    {selectedProduct.name}
-  </h2>
+              <h2>
+                {selectedProduct.name}
+              </h2>
 
-  <p>
-    {selectedProduct.description}
-  </p>
+              <p>
+                {selectedProduct.description}
+              </p>
 
-  <h3>
-    ₹{selectedProduct.price}
-  </h3>
+              <h3>
+                ₹{selectedProduct.price}
+              </h3>
 
-  <div className="modal-actions">
+              <div className="modal-actions">
 
-    <button
-      className="cart-btn"
-      onClick={() =>
-        addToCart(selectedProduct)
-      }
-    >
-      🛒 Add Cart
-    </button>
+                <button
+                  className="cart-btn"
+                  onClick={() =>
+                    addToCart(
+                      selectedProduct
+                    )
+                  }
+                >
+                  🛒 Add Cart
+                </button>
 
-    <button
-      className="wishlist-btn"
-    >
-       ❤️ Wishlist
-    </button>
+                <button
+                  className="wishlist-btn"
+                  onClick={() =>
+                    handleWishlist(
+                      selectedProduct.id
+                    )
+                  }
+                >
+                  ❤️ Wishlist
+                </button>
 
-  </div>
+              </div>
 
-</div>
+            </div>
 
           </div>
 
@@ -874,3 +964,6 @@ const handleWishlist = async (productId) =>{
 }
 
 export default UserDashboard;
+
+
+
