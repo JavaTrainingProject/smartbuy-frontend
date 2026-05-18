@@ -531,25 +531,29 @@ function ProductPage() {
               />
 
 
-              <input
-                type="number"
-                name="price"
-                placeholder="Price"
-                value={formData.price}
-                onChange={handleChange}
-                required
-              />
+             <input
+  type="number"
+  name="price"
+  placeholder="Price"
+  value={formData.price}
+  onChange={handleChange}
+  min="2000"
+  max="200000"
+  step="1"
+  required
+/>
 
 
-              <input
-                type="number"
-                name="quantity"
-                placeholder="Stock"
-                value={formData.quantity}
-                onChange={handleChange}
-                required
-              />
-
+   <input
+  type="number"
+  name="quantity"
+  placeholder="Stock"
+  value={formData.quantity}
+  onChange={handleChange}
+  min="1"
+  step="1"
+  required
+/>
 
               <textarea
                 name="description"
