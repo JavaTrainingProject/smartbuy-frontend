@@ -1,74 +1,132 @@
 .order-page {
   background: #f4f6f9;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  font-family: Arial, sans-serif;
 }
 
-
+/* Layout */
 .order-layout {
   display: flex;
   width: 100%;
-  flex: 1;
+  min-height: 100vh;
 }
 
-
+/* Sidebar */
 .user-navbar {
   width: 240px;
   flex-shrink: 0;
   background: #fff;
-  border-right: 1px solid #eee;
-
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  border-right: 1px solid #eaeaea;
 }
 
-
+/* Main */
 .order-main {
   flex: 1;
-  min-width: 0;
-  padding: 25px;
-  overflow-x: hidden;
-
+  padding: 30px;
   display: flex;
   flex-direction: column;
-  align-items: center;  
+  align-items: center;
 }
 
+.order-main h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
 
+/* WRAPPER */
 .order-content-wrapper {
   width: 100%;
-  max-width: 800px;  
+  max-width: 900px;
 }
 
-
+/* ORDER CARD */
 .order-card {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 18px;
-  margin-bottom: 15px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  margin-bottom: 18px;
+
+  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  border-left: 5px solid #2563eb;
+  transition: 0.2s;
 }
 
+.order-card:hover {
+  transform: translateY(-2px);
+}
 
+/* TOP */
 .order-top {
   display: flex;
   justify-content: space-between;
-  font-weight: bold;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
+.order-top h3 {
+  font-size: 15px;
+  color: #333;
+}
 
+.status {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* ITEMS */
 .order-items {
-  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
+.order-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  background: #f9fafb;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.order-image {
+  width: 65px;
+  height: 65px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
+
+.order-item h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.order-item p {
+  margin: 2px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+/* TOTAL */
 .order-total {
-  margin-top: 10px;
+  margin-top: 15px;
   text-align: right;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
 }
 
-footer {
-  margin-top: auto;
+/* EMPTY */
+.order-content-wrapper p {
+  text-align: center;
+  color: #777;
+  margin-top: 40px;
+  font-size: 16px;
 }
