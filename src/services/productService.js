@@ -1,6 +1,15 @@
 import axiosInstance from "./axiosInstance";
 
 
+export const getProductsByCategory = (
+  categoryName
+) => {
+
+  return axiosInstance.get(
+    `/products/category/${categoryName}`
+  );
+};
+
 export const getAllProducts = (
   page = 0,
   size = 6
