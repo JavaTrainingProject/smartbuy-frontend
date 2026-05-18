@@ -8,6 +8,10 @@ import "../styles/UserBoard.css";
 import { useNavigate } from "react-router-dom";
 
 import "../styles/UserDashboard.css";
+import Toast from "../components/Toast";
+import {getAllProducts,getProductsByCategory} from "../services/productService";
+import { getActiveCategories } from "../services/categoryService";
+import { addToWishlist } from "../services/wishlistService"
 
 import {getAllProducts, getProductsByCategory} from "../services/productService";
 
@@ -28,6 +32,11 @@ function UserDashboard() {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: ""
+});
 
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -47,6 +56,29 @@ function UserDashboard() {
 
     fetchCategories();
 
+  }, []);
+
+  const showToast = (
+    message,
+    type
+) => {
+
+    setToast({
+        show: true,
+        message,
+        type
+    });
+
+    setTimeout(() => {
+
+        setToast({
+            show: false,
+            message: "",
+            type: ""
+        });
+
+    }, 3000);
+};
   }, [page]);
 
   const fetchProducts = async () => {
@@ -163,6 +195,9 @@ function UserDashboard() {
     setPage(0);
   };
 
+
+  
+const addToCart = async (product) => {
   const addToCart = async (product) => {
 
     try {
@@ -184,6 +219,21 @@ function UserDashboard() {
 
     } catch (err) {
 
+    console.log("ADD CART ERROR:", err);
+
+  }
+};
+
+const handleWishlist = async (productId) =>{
+  try{
+    const response = await addToWishlist(productId);
+    showToast(response,"success");
+  }
+  catch(error){
+    console.log(error);
+    showToast("Failed to add product to wishlist","error");
+  }
+};
       console.log(
         "ADD CART ERROR:",
         err
@@ -371,6 +421,11 @@ function UserDashboard() {
                         Add Cart
                       </button>
 
+                    <button className="wishlist-btn" onClick={() => handleWishlist(product.id)}>
+
+                      Wishlist
+
+                    </button>
                       <button
                         className="wishlist-btn"
                         onClick={(e) =>
@@ -450,6 +505,12 @@ function UserDashboard() {
         )}
 
       </div>
+      {
+    toast.show && (
+
+        <Toast message={toast.message} type={toast.type} />
+    )
+}
 
       {/* PRODUCT MODAL */}
       {selectedProduct && (

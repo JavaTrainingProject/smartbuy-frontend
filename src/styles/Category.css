@@ -193,31 +193,7 @@
   transform: translateY(-1px);
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
- 
-  gap: 10px;
-  margin-top: 30px;
-}
 
-.pagination button {
-   width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: white;
-  cursor: pointer;
-}
-
-.pagination button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-.pagination button.active {
-  background: #0d47a1;
-}
 
 .status-container {
   display: flex;
@@ -290,4 +266,31 @@
   color: red;
   font-size: 14px;
   margin-top: 5px;
+}
+
+.success-toast {
+  position: fixed;
+  top: 90px;
+  right: 30px;
+  background: #22c55e;
+  color: white;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 9999;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
