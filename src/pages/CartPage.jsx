@@ -3,216 +3,161 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
 import UserNavbar from "../components/UserNavbar";
 import ConfirmModal from "../components/ConfirmModal";
-
 import "../styles/CartPage.css";
 
 export default function CartPage() {
-
   const [cart, setCart] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
   const navigate = useNavigate();
 
-  // ================= FETCH CART =================
+  const showPopup = (msg, type) => {
+    setMessage(msg);
+    setMessageType(type);
+
+    setTimeout(() => setMessage(""), 2500);
+  };
+
   const fetchCart = async () => {
     try {
       const res = await axiosInstance.get("/cart");
       setCart(res.data?.data || []);
     } catch (err) {
-      console.log(err);
+      showPopup("Failed to fetch cart", "error");
     }
   };
 
   useEffect(() => {
-    
     fetchCart();
   }, []);
 
-  // ================= UPDATE QUANTITY =================
   const updateQty = async (item, type) => {
+    const newQty = type === "inc" ? item.quantity + 1 : item.quantity - 1;
 
-    const newQty =
-      type === "inc"
-        ? item.quantity + 1
-        : item.quantity - 1;
-
-    if (newQty < 1) return;
+    if (newQty < 1) {
+      showPopup("Quantity cannot be less than 1", "error");
+      return;
+    }
 
     try {
-
       await axiosInstance.put(`/cart/${item.id}`, {
         quantity: newQty,
       });
 
       fetchCart();
-
+      showPopup("Quantity updated", "success");
     } catch (err) {
-      console.log(err);
+      showPopup("Update failed", "error");
     }
   };
 
-  // ================= REMOVE ITEM =================
   const removeItem = async (id) => {
-
     try {
-
       await axiosInstance.delete(`/cart/${id}`);
       fetchCart();
-
+      showPopup("Item removed", "success");
     } catch (err) {
-      console.log(err);
+      showPopup("Remove failed", "error");
     }
   };
 
-  // ================= PLACE ORDER =================
   const placeOrder = async () => {
+    if (cart.length === 0) {
+      showPopup("Cart is empty", "error");
+      return;
+    }
 
     try {
-
       await axiosInstance.post("/orders", {
-        address: "Default Address",
+        address: "Hyderabad",
+        cartItemIds: cart.map((i) => i.id),
       });
 
       setShowConfirm(false);
-      setCart([]);
+      showPopup("Order placed", "success");
 
-      setSuccessMessage("Order placed successfully!");
-
-      setTimeout(() => {
-        setSuccessMessage("");
-        navigate("/user/orders");
-      }, 1200);
-
+      setTimeout(() => navigate("/user/orders"), 1500);
     } catch (err) {
-
-      console.log(err);
-      setSuccessMessage("Order failed!");
-
+      showPopup("Order failed", "error");
     }
   };
 
-  // ================= TOTAL =================
-  const total = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
   return (
-
     <div className="cart-page">
-
-    
-
       <div className="cart-layout">
-
         <UserNavbar />
 
         <div className="cart-main">
+          <h2 className="cart-title">My Cart</h2>
 
-          <h2>🛒 My Cart</h2>
-
-          {successMessage && (
-            <div className="success-msg">
-              {successMessage}
+          {message && (
+            <div className={`popup ${messageType}`}>
+              {message}
             </div>
           )}
 
           {cart.length === 0 ? (
-
-            <div className="empty-cart">
-              Your cart is empty
-            </div>
-
+            <div className="empty">Cart is empty</div>
           ) : (
-
             <>
               {cart.map((item) => (
-
                 <div key={item.id} className="cart-card">
+                  <img src={item.imageUrl} className="cart-img" />
 
-                  {/* IMAGE */}
-                  <img
-                    src={item.imageUrl}
-                    alt={item.productName}
-                    className="cart-image"
-                  />
-
-                  {/* PRODUCT INFO */}
                   <div className="cart-info">
-
                     <h3>{item.productName}</h3>
+                    <p className="sub">{item.subCategoryName}</p>
 
-                    <p className="price">
-                      ₹ {item.price}
-                    </p>
+                    <p className="desc">{item.productDescription}</p>
 
+                    <p className="price">₹ {item.price}</p>
                   </div>
 
-                  {/* QUANTITY */}
-                  <div className="qty-box">
-
-                    <button
-                      onClick={() => updateQty(item, "dec")}
-                    >
-                      -
-                    </button>
-
+                  <div className="qty">
+                    <button onClick={() => updateQty(item, "dec")}>-</button>
                     <span>{item.quantity}</span>
-
-                    <button
-                      onClick={() => updateQty(item, "inc")}
-                    >
-                      +
-                    </button>
-
+                    <button onClick={() => updateQty(item, "inc")}>+</button>
                   </div>
 
-                  {/* TOTAL */}
-                  <div className="item-total">
+                  <div className="total">
                     ₹ {item.price * item.quantity}
                   </div>
 
-                  {/* REMOVE */}
+                  {/* ONLY ONE REMOVE BUTTON */}
                   <button
                     className="remove-btn"
                     onClick={() => removeItem(item.id)}
                   >
                     Remove
                   </button>
-
                 </div>
               ))}
 
-              {/* SUMMARY */}
-              <div className="cart-summary">
-
+              <div className="summary">
                 <h3>Total: ₹ {total}</h3>
 
                 <button
-                  className="order-btn"
+                  className="place-order-btn"
                   onClick={() => setShowConfirm(true)}
                 >
                   Place Order
                 </button>
-
               </div>
             </>
           )}
-
         </div>
       </div>
 
-      {/* CONFIRM MODAL */}
       <ConfirmModal
         show={showConfirm}
-        message="Are you sure you want to place the order?"
+        message="Confirm order?"
         onYes={placeOrder}
         onNo={() => setShowConfirm(false)}
       />
-
-    
-
     </div>
   );
 }
