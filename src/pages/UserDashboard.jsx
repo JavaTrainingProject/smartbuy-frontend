@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/UserDashboard.css";
-
-import {
-  getAllProducts,
-  getProductsByCategory
-} from "../services/productService";
+import Toast from "../components/Toast";
+import {getAllProducts,getProductsByCategory} from "../services/productService";
 import { getActiveCategories } from "../services/categoryService";
+import { addToWishlist } from "../services/wishlistService"
 
 import axiosInstance from "../services/axiosInstance";
 
@@ -23,6 +21,11 @@ function UserDashboard() {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: ""
+});
 
   const navigate = useNavigate();
 
@@ -33,6 +36,28 @@ function UserDashboard() {
     fetchCategories();
 
   }, []);
+
+  const showToast = (
+    message,
+    type
+) => {
+
+    setToast({
+        show: true,
+        message,
+        type
+    });
+
+    setTimeout(() => {
+
+        setToast({
+            show: false,
+            message: "",
+            type: ""
+        });
+
+    }, 3000);
+};
 
   const fetchProducts = async () => {
 
@@ -150,7 +175,7 @@ const handleSearch = (value) => {
 };
 
 
-  // SEARCH FILTER
+  
 const addToCart = async (product) => {
 
   try {
@@ -170,6 +195,17 @@ const addToCart = async (product) => {
 
     console.log("ADD CART ERROR:", err);
 
+  }
+};
+
+const handleWishlist = async (productId) =>{
+  try{
+    const response = await addToWishlist(productId);
+    showToast(response,"success");
+  }
+  catch(error){
+    console.log(error);
+    showToast("Failed to add product to wishlist","error");
   }
 };
 
@@ -325,7 +361,7 @@ const addToCart = async (product) => {
   Add Cart
 </button>
 
-                    <button className="wishlist-btn">
+                    <button className="wishlist-btn" onClick={() => handleWishlist(product.id)}>
 
                       Wishlist
 
@@ -356,6 +392,12 @@ const addToCart = async (product) => {
         )}
 
       </div>
+      {
+    toast.show && (
+
+        <Toast message={toast.message} type={toast.type} />
+    )
+}
 
     </div>
   );

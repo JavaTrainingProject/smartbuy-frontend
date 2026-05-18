@@ -13,6 +13,12 @@ export default function OrderPage() {
 
   // ================= FETCH ORDERS =================
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/");
+      return;
+    }
 
     const fetchOrders = async () => {
 

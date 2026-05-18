@@ -28,6 +28,12 @@ export default function CartPage() {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/");
+      return;
+    }
     fetchCart();
   }, []);
 
