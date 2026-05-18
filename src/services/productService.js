@@ -1,63 +1,93 @@
 import axiosInstance from "./axiosInstance";
 
-// GET ALL PRODUCTS
-export const getAllProducts = async () => {
 
-  const res = await axiosInstance.get(
-    "/products?page=0&size=50"
-  );
-
-  console.log("PRODUCT RESPONSE:", res.data);
-
-  return res.data?.data?.content || [];
-};
-
-
-// GET PRODUCT BY ID
-export const getProductById = async (id) => {
-
-  const res = await axiosInstance.get(
-    `/products/${id}`
-  );
-
-  return res.data?.data;
-};
-
-export const createProduct = async (formData) => {
-
-  const res = await axiosInstance.post(
-    "/products",
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
-  );
-
-  return res.data;
-};
-
-
-
-
-// GET PRODUCTS BY CATEGORY
-export const getProductsByCategory = async (
+export const getProductsByCategory = (
   categoryName
 ) => {
 
-  const res = await axiosInstance.get(
-    "/products?page=0&size=50"
+  return axiosInstance.get(
+    `/products/category/${categoryName}`
   );
+};
 
-  const products =
-    res.data?.data?.content || [];
+export const getAllProducts = (
+  page = 0,
+  size = 6
+) => {
 
-  return products.filter(
-    (product) =>
+  return axiosInstance.get(
+    `/products?page=${page}&size=${size}`
+  );
+};
 
-      product.categoryName
-        ?.toLowerCase() ===
-      categoryName?.toLowerCase()
+
+export const getProductById = (id) => {
+
+  return axiosInstance.get(
+    `/products/${id}`
+  );
+};
+
+export const createProduct = (
+  formData
+) => {
+
+  return axiosInstance.post(
+    `/products/create`,
+    formData,
+    {
+      headers: {
+        "Content-Type":
+          "multipart/form-data",
+      },
+    }
+  );
+};
+
+
+export const updateProduct = (
+  id,
+  formData
+) => {
+
+  return axiosInstance.put(
+    `/products/${id}`,
+    formData,
+    {
+      headers: {
+        "Content-Type":
+          "multipart/form-data",
+      },
+    }
+  );
+};
+
+
+export const deleteProduct = (
+  id
+) => {
+
+  return axiosInstance.delete(
+    `/products/${id}`
+  );
+};
+
+export const softDeleteProduct = (
+  id
+) => {
+
+  return axiosInstance.delete(
+    `/products/${id}`
+  );
+};
+
+
+export const toggleProductStatus = (
+  id,
+  status
+) => {
+
+  return axiosInstance.patch(
+    `/products/${id}/status?status=${status}`
   );
 };
