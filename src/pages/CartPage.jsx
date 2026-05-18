@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
-
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import UserNavbar from "../components/UserNavbar";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -28,12 +25,7 @@ export default function CartPage() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/");
-      return;
-    }
+    
     fetchCart();
   }, []);
 
@@ -89,7 +81,7 @@ export default function CartPage() {
 
       setTimeout(() => {
         setSuccessMessage("");
-        navigate("/orders");
+        navigate("/user/orders");
       }, 1200);
 
     } catch (err) {
@@ -110,7 +102,7 @@ export default function CartPage() {
 
     <div className="cart-page">
 
-      <Header />
+    
 
       <div className="cart-layout">
 
@@ -219,7 +211,7 @@ export default function CartPage() {
         onNo={() => setShowConfirm(false)}
       />
 
-      <Footer />
+    
 
     </div>
   );

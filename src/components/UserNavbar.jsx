@@ -11,8 +11,8 @@ function UserNavbar() {
       <ul className="menu">
         <li><Link to="/user/"> Home</Link></li>
         <li><Link to="/user/wishlist"> Wishlist</Link></li>
-        <li><Link to="/orders"> Orders</Link></li>
-        <li><Link to="/cart">Add cart</Link></li>
+        <li><Link to="/user/orders"> Orders</Link></li>
+        <li><Link to="/user/cart">Add cart</Link></li>
       </ul>
     </div>
   );

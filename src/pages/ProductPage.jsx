@@ -1,373 +1,585 @@
 import { useEffect, useState } from "react";
+
 import axiosInstance from "../services/axiosInstance";
-import { getAllProducts, getProductsByCategory, createProduct} from "../services/productService";
+
+import {
+  getAllProducts,
+  createProduct,
+  updateProduct,
+  softDeleteProduct,
+  getProductsByCategory,
+} from "../services/productService";
+
+import API from "../services/axiosInstance";
+
+import { getAllSubCategories } from "../services/subCategoryService";
 
 import "../styles/product.css";
 
 function ProductPage() {
 
   const [products, setProducts] = useState([]);
+
   const [categories, setCategories] = useState([]);
+
   const [subCategories, setSubCategories] = useState([]);
+
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const [filteredSubCategories, setFilteredSubCategories] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
 
-  const [successMsg, setSuccessMsg] = useState("");
+  const [successPopup, setSuccessPopup] = useState("");
 
- 
+  const [imagePreview, setImagePreview] = useState([]);
+
+  const [editingId, setEditingId] = useState(null);
+
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const size = 5;
 
-  
+  const [totalPages, setTotalPages] = useState(0);
+
+  const [imageFiles, setImageFiles] = useState([]);
+
   const [formData, setFormData] = useState({
+
     categoryId: "",
+
     subCategoryId: "",
-    productName: "",
-    productDescription: "",
+
+    name: "",
+
     price: "",
+
+    quantity: "",
+
+    description: "",
   });
 
- const [imageFiles, setImageFiles] = useState([]);
-
-  
   useEffect(() => {
+
     fetchProducts();
-    fetchCategories();
-    fetchSubCategories(); 
+
   }, [page]);
 
- 
+  useEffect(() => {
+
+    fetchCategories();
+
+    fetchSubCategories();
+
+  }, []);
+
   const fetchProducts = async () => {
+
     try {
 
-      const res = await getAllProducts(page, size);
+      const response =
+        await getAllProducts(page, 6);
 
-      const data = res.data?.data;
+      const data =
+        response.data.data;
 
-      setProducts(data?.content || []);
-      setTotalPages(data?.totalPages || 0);
+      const sortedProducts =
+        data.content.sort(
+          (a, b) => b.id - a.id
+        );
 
-    } catch (err) {
-      console.log("PRODUCT ERROR:", err);
+      setProducts(sortedProducts);
+
+      setTotalPages(
+        data.totalPages
+      );
+
+    } catch (error) {
+
+      console.log(
+        "Error fetching products",
+        error
+      );
+
+      setProducts([]);
     }
   };
 
- 
- const fetchCategories = async () => {
+  const fetchCategories = async () => {
 
-  try {
+    try {
 
-    const res = await axiosInstance.get(
-      "/admin/categories/active?page=0&size=100"
-    );
+      const response =
+        await API.get(
+          "/admin/categories?page=0&size=100"
+        );
 
-    console.log("CATEGORY RESPONSE:", res.data);
+      setCategories(
+        response.data.data.content || []
+      );
 
-    let list = [];
+    } catch (error) {
 
-    if (Array.isArray(res.data)) {
-      list = res.data;
+      console.log(error);
     }
-    else if (Array.isArray(res.data.data)) {
-      list = res.data.data;
-    }
-    else if (Array.isArray(res.data.data?.content)) {
-      list = res.data.data.content;
-    }
+  };
 
-    console.log("FINAL CATEGORY LIST:", list);
-
-    setCategories(list);
-
-  } catch (err) {
-
-    console.log("CATEGORY ERROR:", err);
-
-    setCategories([]);
-  }
-};
-
-  
   const fetchSubCategories = async () => {
 
     try {
 
-      
-      const res = await axiosInstance.get("/subcategory");
+      const response =
+        await getAllSubCategories();
 
-      console.log("SUBCATEGORY RESPONSE:", res.data);
+      setSubCategories(
+        response.data.data.content || []
+      );
 
-      let list = [];
+    } catch (error) {
 
-      if (Array.isArray(res.data)) {
-        list = res.data;
-      }
-      else if (Array.isArray(res.data.data)) {
-        list = res.data.data;
-      }
-      else if (Array.isArray(res.data.data?.content)) {
-        list = res.data.data.content;
-      }
-      else if (Array.isArray(res.data.content)) {
-        list = res.data.content;
-      }
-
-      console.log("FINAL SUBCATEGORY LIST:", list);
-
-      setSubCategories(list);
-
-    } catch (err) {
-
-      console.log("SUBCATEGORY ERROR:", err);
-
-      setSubCategories([]);
+      console.log(error);
     }
   };
 
-  
-  const openAddModal = () => {
+  const handleChange = (e) => {
 
-    setShowModal(true);
+    const {
+      name,
+      value,
+      files,
+    } = e.target;
+
+    
+    if (name === "images") {
+
+      const selectedFiles =
+        [...files];
+
+      setImageFiles(selectedFiles);
+
+      const previewUrls =
+        selectedFiles.map((file) =>
+          URL.createObjectURL(file)
+        );
+
+      setImagePreview(previewUrls);
+
+      return;
+    }
+
+    
+    if (name === "categoryId") {
+
+      const filtered =
+        subCategories.filter(
+          (sub) =>
+            String(sub.categoryId) ===
+            String(value)
+        );
+
+      setFilteredSubCategories(
+        filtered
+      );
+
+      setFormData({
+        ...formData,
+        categoryId: value,
+        subCategoryId: "",
+      });
+
+      return;
+    }
 
     setFormData({
-      categoryId: "",
-      subCategoryId: "",
-      productName: "",
-      productDescription: "",
-      price: "",
+      ...formData,
+      [name]: value,
     });
-
-    setImageFile(null);
   };
 
-  
   const handleSubmit = async (e) => {
 
     e.preventDefault();
 
-    const productObj = {
-
-      categoryId: Number(formData.categoryId),
-
-      subCategoryId: Number(formData.subCategoryId),
-
-      product_name: formData.productName,
-
-      product_description: formData.productDescription,
-
-      product_price: Number(formData.price),
-
-      quantity: 1,
-    };
-
-    const form = new FormData();
-
-    form.append("product", JSON.stringify(productObj));
-
-    imageFiles.forEach((file) => {
-  form.append("images", file);
-});
-
     try {
 
-      await createProduct(form);
+      const productData = {
 
-      setSuccessMsg("Product added successfully!");
+        categoryId:
+          formData.categoryId,
 
-      setShowModal(false);
+        subCategoryId:
+          formData.subCategoryId,
+
+        product_name:
+          formData.name,
+
+        product_price:
+          Number(formData.price),
+
+        quantity:
+          Number(formData.quantity),
+
+        stock:
+          Number(formData.quantity),
+
+        product_description:
+          formData.description,
+      };
+
+      const data =
+        new FormData();
+
+      data.append(
+        "product",
+        JSON.stringify(productData)
+      );
+
+      
+      imageFiles.forEach((file) => {
+
+        data.append(
+          "images",
+          file
+        );
+      });
+
+      if (editingId) {
+
+        await updateProduct(
+          editingId,
+          data
+        );
+
+        setSuccessPopup(
+          "Product Updated Successfully"
+        );
+
+      } else {
+
+        await createProduct(data);
+
+        setSuccessPopup(
+          "Product Added Successfully"
+        );
+      }
 
       fetchProducts();
 
+      setShowModal(false);
+
+      setEditingId(null);
+
+      setImagePreview([]);
+
+      setImageFiles([]);
+
+      setFilteredSubCategories([]);
+
+      setFormData({
+
+        categoryId: "",
+
+        subCategoryId: "",
+
+        name: "",
+
+        price: "",
+
+        quantity: "",
+
+        description: "",
+      });
+
       setTimeout(() => {
-        setSuccessMsg("");
-      }, 2000);
 
-    } catch (err) {
+        setSuccessPopup("");
 
-      console.log("SUBMIT ERROR:", err);
+      }, 3000);
+
+    } catch (error) {
+
+      console.log(
+        "PRODUCT ERROR:",
+        error.response?.data ||
+        error.message
+      );
     }
   };
 
-  
+  const handleEdit = (product) => {
+
+    setEditingId(product.id);
+
+    setFormData({
+
+      categoryId:
+        product.categoryId || "",
+
+      subCategoryId:
+        product.subCategoryId || "",
+
+      name:
+        product.name || "",
+
+      price:
+        product.price || "",
+
+      quantity:
+        product.stock ||
+        product.quantity ||
+        "",
+
+      description:
+        product.description || "",
+    });
+
+    setImagePreview(
+      product.images || []
+    );
+
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+
+    try {
+
+      await softDeleteProduct(id);
+
+      fetchProducts();
+
+      setSuccessPopup(
+        "Product Deleted Successfully"
+      );
+
+      setTimeout(() => {
+
+        setSuccessPopup("");
+
+      }, 3000);
+
+    } catch (error) {
+
+      console.log(error);
+    }
+  };
+
   return (
 
-    <div className="category-container">
+    <div className="product-page">
 
-     
-      {successMsg && (
-        <div className="success-popup">
-          {successMsg}
-        </div>
-      )}
-
-      
-      <div className="header">
+      <div className="product-header">
 
         <h2>Products</h2>
 
         <button
           className="add-btn"
-          onClick={openAddModal}
+          onClick={() => {
+
+            setShowModal(true);
+
+            setEditingId(null);
+
+            setImagePreview([]);
+
+            setImageFiles([]);
+
+            setFilteredSubCategories([]);
+
+            setFormData({
+
+              categoryId: "",
+
+              subCategoryId: "",
+
+              name: "",
+
+              price: "",
+
+              quantity: "",
+
+              description: "",
+            });
+          }}
         >
           + Add Product
         </button>
 
       </div>
 
-      
-      <div
-        style={{
-          height: "400px",
-          background: "#f8fafc",
-          borderRadius: "12px",
-          border: "1px dashed #cbd5e1",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          color: "#64748b",
-          fontSize: "18px",
-          marginTop: "20px",
-        }}
-      >
-        Product page content will come here
-      </div>
+      {successPopup && (
 
-     
+        <div className="success-popup">
+
+          {successPopup}
+
+        </div>
+      )}
+
       {showModal && (
 
         <div className="modal">
 
-          <div className="modal-content">
+          <div className="form-box">
 
-            <h3>Add Product</h3>
+            <div className="form-header">
 
-            <form onSubmit={handleSubmit}>
+              <h3>
+                {editingId
+                  ? "Edit Product"
+                  : "Add Product"}
+              </h3>
 
-            
-              <select
-                value={formData.categoryId}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    categoryId: e.target.value,
-                  })
+              <button
+                className="close-btn"
+                onClick={() =>
+                  setShowModal(false)
                 }
-                required
               >
-                <option value="">
-                  Select Category
-                </option>
+                ×
+              </button>
 
-                {categories.map((c, index) => (
-                  <option
-                    key={c.id || index}
-                    value={c.id}
+            </div>
+
+            <form
+              className="product-form"
+              onSubmit={handleSubmit}
+            >
+
+              {!editingId && (
+
+                <>
+
+                  <select
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleChange}
+                    required
                   >
-                    {c.categoryName}
-                  </option>
-                ))}
-              </select>
 
-           
-              <select
-                value={formData.subCategoryId}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    subCategoryId: e.target.value,
-                  })
-                }
-                required
-              >
-                <option value="">
-                  Select SubCategory
-                </option>
+                    <option value="">
+                      Select Category
+                    </option>
 
-                {subCategories.map((s, index) => (
+                    {categories.map((cat) => (
 
-                  <option
-                    key={
-                      s.id ||
-                      s.subCategoryId ||
-                      s.sub_category_id ||
-                      index
+                      <option
+                        key={cat.id}
+                        value={cat.id}
+                      >
+                        {cat.categoryName}
+                      </option>
+
+                    ))}
+
+                  </select>
+
+                  <select
+                    name="subCategoryId"
+                    value={formData.subCategoryId}
+                    onChange={handleChange}
+                    disabled={
+                      !formData.categoryId
                     }
-                    value={
-                      s.id ||
-                      s.subCategoryId ||
-                      s.sub_category_id
-                    }
+                    required
                   >
-                    {
-                      s.subCategoryName ||
-                      s.sub_category_name ||
-                      s.name
-                    }
-                  </option>
 
-                ))}
-              </select>
+                    <option value="">
+                      Select SubCategory
+                    </option>
 
-             
+                    {filteredSubCategories.map((sub) => (
+
+                      <option
+                        key={sub.id}
+                        value={sub.id}
+                      >
+                        {sub.subCategoryName}
+                      </option>
+
+                    ))}
+
+                  </select>
+
+                </>
+              )}
+
               <input
                 type="text"
+                name="name"
                 placeholder="Product Name"
-                value={formData.productName}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    productName: e.target.value,
-                  })
-                }
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+
+              <input
+                type="number"
+                name="price"
+                placeholder="Price"
+                value={formData.price}
+                onChange={handleChange}
+                required
+              />
+
+              <input
+                type="number"
+                name="quantity"
+                placeholder="Stock"
+                value={formData.quantity}
+                onChange={handleChange}
                 required
               />
 
               <textarea
+                name="description"
                 placeholder="Description"
-                value={formData.productDescription}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    productDescription: e.target.value,
-                  })
-                }
+                value={formData.description}
+                onChange={handleChange}
               />
 
-            
               <input
-                type="number"
-                placeholder="Price"
-                value={formData.price}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    price: e.target.value,
-                  })
-                }
-                required
+                type="file"
+                name="images"
+                multiple
+                accept="image/*"
+                onChange={handleChange}
               />
 
-        
-             <input
-  type="file"
-  multiple
-  onChange={(e) =>
-    setImageFiles([...e.target.files])
-  }
-/>
+              {imagePreview.length > 0 && (
 
-        
-              <div className="modal-actions">
+                <div className="preview-box">
 
-                <button type="submit">
-                  Save
+                  {imagePreview.map(
+                    (img, index) => (
+
+                      <img
+                        key={index}
+                        src={img}
+                        alt="Preview"
+                      />
+
+                    )
+                  )}
+
+                </div>
+              )}
+
+              <div className="form-buttons">
+
+                <button
+                  type="submit"
+                  className="save-btn"
+                >
+                  {editingId
+                    ? "Update Product"
+                    : "Save Product"}
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  className="cancel-btn"
+                  onClick={() =>
+                    setShowModal(false)
+                  }
                 >
                   Cancel
                 </button>
@@ -381,8 +593,118 @@ function ProductPage() {
         </div>
       )}
 
+      <div className="product-grid">
+
+        {products.map((product) => (
+
+          <div
+            className="product-item"
+            key={product.id}
+          >
+
+            <div className="image-box">
+
+              <img
+                src={
+                  product.imageUrl
+                    ? product.imageUrl
+                    : "https://via.placeholder.com/300x200?text=No+Image"
+                }
+                alt={product.name}
+              />
+
+            </div>
+
+            <div className="action-buttons">
+
+              <button
+                className="edit-btn"
+                onClick={() =>
+                  handleEdit(product)
+                }
+              >
+                Edit
+              </button>
+
+              <button
+                className="delete-btn"
+                onClick={() =>
+                  handleDelete(product.id)
+                }
+              >
+                Delete
+              </button>
+
+            </div>
+
+            <div className="product-info">
+
+              <h4>{product.name}</h4>
+
+              <p className="price">
+                ₹ {product.price}
+              </p>
+
+              <p className="stock">
+                Stock:
+                {" "}
+                {product.stock ||
+                  product.quantity}
+              </p>
+
+              <p>
+                {product.description}
+              </p>
+
+              <p>
+                <strong>Category:</strong>
+                {" "}
+                {product.categoryName}
+              </p>
+
+              <p>
+                <strong>SubCategory:</strong>
+                {" "}
+                {product.subCategoryName}
+              </p>
+
+            </div>
+
+          </div>
+
+        ))}
+
+      </div>
+
+      <div className="pagination">
+
+        <button
+          disabled={page === 0}
+          onClick={() =>
+            setPage(page - 1)
+          }
+        >
+          Prev
+        </button>
+
+        <span>
+          Page {page + 1} of {totalPages}
+        </span>
+
+        <button
+          disabled={
+            page + 1 >= totalPages
+          }
+          onClick={() =>
+            setPage(page + 1)
+          }
+        >
+          Next
+        </button>
+
+      </div>
+
     </div>
   );
 }
-
 export default ProductPage;

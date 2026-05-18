@@ -7,6 +7,7 @@ import UserNavbar from "../components/UserNavbar";
 import Toast from "../components/Toast";
 
 import "../styles/WishlistPage.css";
+import { addToCart } from "../services/cartService";
 
 export default function WishlistPage() {
 
@@ -99,10 +100,8 @@ export default function WishlistPage() {
     };
 
  
-    const handleAddCart = async (
-        productId
-    ) => {
-
+    const handleAddCart = async (productId) => {
+         await addToCart(productId);
         try {
 
             showToast("Product added to cart","success");
