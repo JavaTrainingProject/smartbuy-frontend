@@ -11,6 +11,9 @@ function AppRoutes() {
       <Route path="/" element={<LoginForm />} />
       <Route path="/register" element={<RegisterForm />} />
       <Route path="/verify-otp" element={<VerifyOtp />} />
+    
+     
+
     </Routes>
   );
 }

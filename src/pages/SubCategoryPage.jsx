@@ -63,36 +63,26 @@ function SubCategoryPage() {
  
   const fetchSubCategories = async () => {
 
-    try {
+  try {
 
-      console.log("CURRENT PAGE:", page);
+    const response =
+      await getAllSubCategories(page, size);
 
-      const response = await getAllSubCategories(page, size);
+    console.log(response.data);
 
-      console.log("SUBCATEGORY RESPONSE:", response.data);
+    const data = response.data.data;
 
-      const data = response.data?.data;
+    setSubCategories(data.content || []);
 
-      const list =
-        Array.isArray(data)
-          ? data
-          : data?.content || [];
+    setTotalPages(data.totalPages || 1);
 
-      setSubCategories(list);
+  } catch (error) {
 
-      setTotalPages(
-        data?.totalPages ||
-        Math.ceil((list?.length || 0) / size) ||
-        1
-      );
+    console.log(error);
 
-    } catch (error) {
-
-      console.log("SUBCATEGORY ERROR:", error);
-
-      setSubCategories([]);
-    }
-  };
+    setSubCategories([]);
+  }
+};
 
   useEffect(() => {
 
@@ -366,7 +356,6 @@ function SubCategoryPage() {
 
       </div>
 
-      {/* MODAL */}
       {showModal && (
 
         <div className="modal">

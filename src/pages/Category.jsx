@@ -10,6 +10,8 @@ function CategoryPage() {
   const [editId, setEditId] = useState(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+   const [error, setError] = useState("");
+   const [successMessage, setSuccessMessage] = useState("");
 
 
 
@@ -35,8 +37,6 @@ function CategoryPage() {
   }, [page]);
 
 
-  const [error, setError] = useState("");
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -47,16 +47,22 @@ function CategoryPage() {
         await API.put(`/admin/categories/${editId}`, {
           categoryName: name.trim(),
         });
+         setSuccessMessage("Category updated successfully");
       } else {
         await API.post("/admin/categories", {
           categoryName: name.trim(),
         });
+        setSuccessMessage("Category added successfully");
       }
 
       fetchCategories();
       setName("");
       setEditId(null);
       setShowModal(false);
+
+      setTimeout(() => {
+  setSuccessMessage("");
+}, 3000);
 
     } catch (err) {
 
@@ -128,6 +134,11 @@ function CategoryPage() {
           + Add Category
         </button>
       </div>
+      {successMessage && (
+  <div className="success-toast">
+    {successMessage}
+  </div>
+)}
 
       <table className="category-table">
         <thead>

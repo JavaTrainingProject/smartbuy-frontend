@@ -19,7 +19,6 @@ export const getProductById = (id) => {
   );
 };
 
-
 export const createProduct = (
   formData
 ) => {

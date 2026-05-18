@@ -1,0 +1,122 @@
+.cart-page {
+  background: #f5f7fb;
+  min-height: 100vh;
+}
+
+
+.cart-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+
+.user-navbar {
+  width: 240px;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+
+.cart-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;   
+  padding: 30px;
+}
+
+
+.title {
+  margin-bottom: 20px;
+}
+
+
+.cart-card {
+  width: 70%;
+  background: #fff;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 10px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.qty button {
+  padding: 5px 10px;
+  margin: 0 5px;
+}
+
+
+.remove-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.cart-summary {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.order-btn {
+  background: green;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+.cart-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 10px;
+}
+
+
+.qty-box button {
+  padding: 5px 10px;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+
+.remove-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+
+.cart-summary {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.order-btn {
+  background: green;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.success-msg {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+}

@@ -11,9 +11,6 @@
   transform: translateX(5px);
 }
 
-
-
-
 .profile {
   transition: 0.3s ease;
 }
@@ -21,6 +18,3 @@
 .profile:hover {
   background: #f2f6ff;
 }
-
-
-
