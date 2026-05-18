@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 
+import axiosInstance from "../services/axiosInstance";
+
 import {
   getAllProducts,
   createProduct,
   updateProduct,
   softDeleteProduct,
+  getProductsByCategory,
 } from "../services/productService";
 
 import API from "../services/axiosInstance";
@@ -21,39 +24,45 @@ function ProductPage() {
 
   const [subCategories, setSubCategories] = useState([]);
 
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   const [filteredSubCategories, setFilteredSubCategories] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
 
   const [successPopup, setSuccessPopup] = useState("");
 
-  const [imagePreview, setImagePreview] = useState("");
+  const [imagePreview, setImagePreview] = useState([]);
 
   const [editingId, setEditingId] = useState(null);
 
- 
   const [page, setPage] = useState(0);
 
   const [totalPages, setTotalPages] = useState(0);
 
+  const [imageFiles, setImageFiles] = useState([]);
+
   const [formData, setFormData] = useState({
+
     categoryId: "",
+
     subCategoryId: "",
+
     name: "",
+
     price: "",
+
     quantity: "",
+
     description: "",
-    image: null,
   });
 
- 
   useEffect(() => {
 
     fetchProducts();
 
   }, [page]);
 
-  
   useEffect(() => {
 
     fetchCategories();
@@ -62,7 +71,6 @@ function ProductPage() {
 
   }, []);
 
-  
   const fetchProducts = async () => {
 
     try {
@@ -73,7 +81,6 @@ function ProductPage() {
       const data =
         response.data.data;
 
-      
       const sortedProducts =
         data.content.sort(
           (a, b) => b.id - a.id
@@ -96,7 +103,6 @@ function ProductPage() {
     }
   };
 
-  
   const fetchCategories = async () => {
 
     try {
@@ -116,7 +122,6 @@ function ProductPage() {
     }
   };
 
- 
   const fetchSubCategories = async () => {
 
     try {
@@ -134,7 +139,6 @@ function ProductPage() {
     }
   };
 
- 
   const handleChange = (e) => {
 
     const {
@@ -144,26 +148,24 @@ function ProductPage() {
     } = e.target;
 
     
-    if (name === "image") {
+    if (name === "images") {
 
-      const file = files[0];
+      const selectedFiles =
+        [...files];
 
-      if (file) {
+      setImageFiles(selectedFiles);
 
-        setFormData({
-          ...formData,
-          image: file,
-        });
-
-        setImagePreview(
+      const previewUrls =
+        selectedFiles.map((file) =>
           URL.createObjectURL(file)
         );
-      }
+
+      setImagePreview(previewUrls);
 
       return;
     }
 
-   
+    
     if (name === "categoryId") {
 
       const filtered =
@@ -186,13 +188,11 @@ function ProductPage() {
       return;
     }
 
-    
     setFormData({
       ...formData,
       [name]: value,
     });
   };
-
 
   const handleSubmit = async (e) => {
 
@@ -233,15 +233,14 @@ function ProductPage() {
       );
 
       
-      if (formData.image) {
+      imageFiles.forEach((file) => {
 
         data.append(
           "images",
-          formData.image
+          file
         );
-      }
+      });
 
-     
       if (editingId) {
 
         await updateProduct(
@@ -262,27 +261,31 @@ function ProductPage() {
         );
       }
 
-      
       fetchProducts();
 
-      
       setShowModal(false);
 
-      
       setEditingId(null);
 
-      setImagePreview("");
+      setImagePreview([]);
+
+      setImageFiles([]);
 
       setFilteredSubCategories([]);
 
       setFormData({
+
         categoryId: "",
+
         subCategoryId: "",
+
         name: "",
+
         price: "",
+
         quantity: "",
+
         description: "",
-        image: null,
       });
 
       setTimeout(() => {
@@ -301,7 +304,6 @@ function ProductPage() {
     }
   };
 
- 
   const handleEdit = (product) => {
 
     setEditingId(product.id);
@@ -309,10 +311,10 @@ function ProductPage() {
     setFormData({
 
       categoryId:
-        product.categoryId,
+        product.categoryId || "",
 
       subCategoryId:
-        product.subCategoryId,
+        product.subCategoryId || "",
 
       name:
         product.name || "",
@@ -327,18 +329,15 @@ function ProductPage() {
 
       description:
         product.description || "",
-
-      image: null,
     });
 
     setImagePreview(
-      product.imageUrls || ""
+      product.images || []
     );
 
     setShowModal(true);
   };
 
- 
   const handleDelete = async (id) => {
 
     try {
@@ -379,18 +378,25 @@ function ProductPage() {
 
             setEditingId(null);
 
-            setImagePreview("");
+            setImagePreview([]);
+
+            setImageFiles([]);
 
             setFilteredSubCategories([]);
 
             setFormData({
+
               categoryId: "",
+
               subCategoryId: "",
+
               name: "",
+
               price: "",
+
               quantity: "",
+
               description: "",
-              image: null,
             });
           }}
         >
@@ -399,7 +405,6 @@ function ProductPage() {
 
       </div>
 
-     
       {successPopup && (
 
         <div className="success-popup">
@@ -409,7 +414,6 @@ function ProductPage() {
         </div>
       )}
 
-     
       {showModal && (
 
         <div className="modal">
@@ -440,12 +444,10 @@ function ProductPage() {
               onSubmit={handleSubmit}
             >
 
-             
               {!editingId && (
 
                 <>
 
-                 
                   <select
                     name="categoryId"
                     value={formData.categoryId}
@@ -500,7 +502,6 @@ function ProductPage() {
                 </>
               )}
 
-              
               <input
                 type="text"
                 name="name"
@@ -510,7 +511,6 @@ function ProductPage() {
                 required
               />
 
-              
               <input
                 type="number"
                 name="price"
@@ -520,7 +520,6 @@ function ProductPage() {
                 required
               />
 
-              
               <input
                 type="number"
                 name="quantity"
@@ -530,7 +529,6 @@ function ProductPage() {
                 required
               />
 
-             
               <textarea
                 name="description"
                 placeholder="Description"
@@ -538,28 +536,33 @@ function ProductPage() {
                 onChange={handleChange}
               />
 
-            
               <input
                 type="file"
-                name="image"
+                name="images"
+                multiple
                 accept="image/*"
                 onChange={handleChange}
               />
 
-             
-              {imagePreview && (
+              {imagePreview.length > 0 && (
 
                 <div className="preview-box">
 
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                  />
+                  {imagePreview.map(
+                    (img, index) => (
+
+                      <img
+                        key={index}
+                        src={img}
+                        alt="Preview"
+                      />
+
+                    )
+                  )}
 
                 </div>
               )}
 
-           
               <div className="form-buttons">
 
                 <button
@@ -590,7 +593,6 @@ function ProductPage() {
         </div>
       )}
 
-      
       <div className="product-grid">
 
         {products.map((product) => (
@@ -600,13 +602,12 @@ function ProductPage() {
             key={product.id}
           >
 
-            
             <div className="image-box">
 
               <img
                 src={
-                  product.imageUrls
-                    ? product.imageUrls
+                  product.imageUrl
+                    ? product.imageUrl
                     : "https://via.placeholder.com/300x200?text=No+Image"
                 }
                 alt={product.name}
@@ -636,7 +637,6 @@ function ProductPage() {
 
             </div>
 
-          
             <div className="product-info">
 
               <h4>{product.name}</h4>
@@ -676,7 +676,6 @@ function ProductPage() {
 
       </div>
 
-     
       <div className="pagination">
 
         <button
@@ -708,5 +707,4 @@ function ProductPage() {
     </div>
   );
 }
-
 export default ProductPage;

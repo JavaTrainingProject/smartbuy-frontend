@@ -1,10 +1,21 @@
 import { useEffect, useState } from "react";
+
+import "../styles/UserBoard.css";
+
 import { useNavigate } from "react-router-dom";
+
 import "../styles/UserDashboard.css";
+<<<<<<< Updated upstream
 import Toast from "../components/Toast";
 import {getAllProducts,getProductsByCategory} from "../services/productService";
 import { getActiveCategories } from "../services/categoryService";
 import { addToWishlist } from "../services/wishlistService"
+=======
+
+import {getAllProducts, getProductsByCategory} from "../services/productService";
+
+import {getActiveCategories, getSubCategoriesByCategory} from "../services/categoryService";
+>>>>>>> Stashed changes
 
 import axiosInstance from "../services/axiosInstance";
 
@@ -14,18 +25,38 @@ function UserDashboard() {
 
   const [filteredProducts, setFilteredProducts] = useState([]);
 
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] =useState([]);
+
+  const [subCategories, setSubCategories] =useState([]);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedSubCategory, setSelectedSubCategory] =useState(null);
 
+<<<<<<< Updated upstream
   const [searchTerm, setSearchTerm] = useState("");
   const [toast, setToast] = useState({
     show: false,
     message: "",
     type: ""
 });
+=======
+  const [showDropdown, setShowDropdown] =useState(false);
+>>>>>>> Stashed changes
+
+  const [searchTerm, setSearchTerm] =useState("");
+
+  const [selectedProduct,setSelectedProduct] =useState(null);
+
+  const [currentImageIndex,setCurrentImageIndex] =useState(0);
+
+  const [page, setPage] = useState(0);
+
+  const [totalPages, setTotalPages] = useState(0);
+
+  const size = 6;
+
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -58,26 +89,38 @@ function UserDashboard() {
 
     }, 3000);
 };
+  }, [page]);
 
   const fetchProducts = async () => {
 
     try {
+      setLoading(true);
 
-      const res = await getAllProducts();
+      const res =
+        await getAllProducts(page, size);
 
-      console.log("ALL PRODUCTS:", res);
+      console.log( "ALL PRODUCTS:", res);
 
-      setProducts(res || []);
+      const productData = res?.data?.data?.content || [];
 
-      setFilteredProducts(res || []);
+      const total = res?.data?.data?.totalPages || 0;
+
+      setProducts(productData);
+
+      setFilteredProducts(productData);
+
+      setTotalPages(total);
 
     } catch (err) {
 
       console.error("PRODUCT ERROR:", err);
-
     }
-  };
+  finally {
+     setLoading(false);
+  }
+};
 
+  
   const fetchCategories = async () => {
 
     try {
@@ -91,108 +134,218 @@ function UserDashboard() {
     } catch (err) {
 
       console.error("CATEGORY ERROR:", err);
-
     }
   };
 
-  const handleCategoryClick = async (
-  category
-) => {
+  const handleCategoryClick =
+    async (category) => {
 
-  setSelectedCategory(category);
+    setSelectedCategory(category);
 
-  const categoryName =
-    category.categoryName ||
-    category.category_name;
+    setSelectedSubCategory(null);
 
-  console.log(
-    "SELECTED CATEGORY:",
-    categoryName
-  );
+    const categoryName =
+      category.categoryName || ategory.category_name;
+
+    try {
+
+     
+      const filtered =
+        await getProductsByCategory(categoryName);
+
+      setFilteredProducts(filtered);
+
+     
+      const categoryId =
+        category.id || category.category_id;
+
+      const subRes =
+        await getSubCategoriesByCategory( categoryId );
+
+      console.log("SUBCATEGORY RESPONSE:", subRes.data );
+
+      let subList = [];
+
+      if (Array.isArray(subRes.data)) {
+
+        subList = subRes.data;
+
+      }
+      else if (
+        Array.isArray(subRes.data.data)
+      ) {
+
+        subList = subRes.data.data;
+
+      }
+      else if (
+        Array.isArray( subRes.data.data?.content )
+      ) {
+
+        subList = subRes.data.data.content;
+      }
+
+      setSubCategories(subList);
+
+      setPage(0);
+
+    } catch (error) {
+
+      console.log("CATEGORY FILTER ERROR:", error );
+
+      setFilteredProducts([]);
+
+      setSubCategories([]);
+    }
+
+    setShowDropdown(false);
+  };
+
+
+const handleSubCategoryClick = async (subCategory) => {
+
+  setLoading(true);
 
   try {
 
-    const filtered =
-      await getProductsByCategory(
-        categoryName
-      );
+    
+    setSelectedSubCategory(subCategory);
 
-    console.log(
-      "FILTERED PRODUCTS:",
-      filtered
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const subCategoryName =
+      subCategory.subCategoryName ||
+      subCategory.sub_category_name ||
+      subCategory.name;
+
+    
+    const filtered = products.filter(
+      (product) =>
+        (
+          product.subCategoryName ||
+          product.sub_category_name
+        )
+          ?.toLowerCase()
+          .trim() ===
+        subCategoryName.toLowerCase().trim()
     );
 
     setFilteredProducts(filtered);
 
+    setPage(0);
+
   } catch (error) {
 
-    console.log(
-      "CATEGORY FILTER ERROR:",
-      error
-    );
+    console.log("SUBCATEGORY ERROR:", error);
 
     setFilteredProducts([]);
 
+  } finally {
+
+    setLoading(false);
+
   }
-
-  setShowDropdown(false);
 };
-
-const handleSearch = (value) => {
-
-  setSearchTerm(value);
-
-  let filtered = products;
-
-  if (selectedCategory) {
-
-    filtered = filtered.filter(
-
-      (product) =>
-
-        product.categoryName
-          ?.toLowerCase() ===
-
-        (
-          selectedCategory.categoryName ||
-
-          selectedCategory.category_name
-        )
-          ?.toLowerCase()
-    );
-  }
-
-  filtered = filtered.filter(
-
-    (product) =>
-
-      product.name
-        ?.toLowerCase()
-        .includes(value.toLowerCase())
-  );
-
-  setFilteredProducts(filtered);
-};
-
-
   
-const addToCart = async (product) => {
+ 
+
+  const handleSearch = async (value) => {
+
+  setLoading(true);
+
+  await new Promise(resolve => setTimeout(resolve, 500));
 
   try {
 
-    const res = await axiosInstance.post("/cart/add", {
+    setSearchTerm(value);
 
-      productId: product.id,
-      quantity: 1,
+    let filtered = products;
 
-    });
+    
+    if (selectedCategory) {
 
-    console.log("ADD CART RESPONSE:", res.data);
+      filtered = filtered.filter(
+        (product) =>
+          product.categoryName
+            ?.toLowerCase() ===
+          (
+            selectedCategory.categoryName ||
+            selectedCategory.category_name
+          )
+            ?.toLowerCase()
+      );
+    }
 
-    navigate("/cart");
+    
+    if (selectedSubCategory) {
 
-  } catch (err) {
+      filtered = filtered.filter(
+        (product) =>
+          (
+            product.subCategoryName ||
+            product.sub_category_name
+          )
+            ?.toLowerCase() ===
+          (
+            selectedSubCategory.subCategoryName ||
+            selectedSubCategory.sub_category_name ||
+            selectedSubCategory.name
+          )
+            ?.toLowerCase()
+      );
+    }
 
+    
+    filtered = filtered.filter(
+      (product) =>
+        product.name
+          ?.toLowerCase()
+          .includes(value.toLowerCase())
+    );
+
+    setFilteredProducts(filtered);
+
+    setPage(0);
+
+<<<<<<< Updated upstream
+
+  
+const addToCart = async (product) => {
+=======
+  } catch (error) {
+
+    console.log("SEARCH ERROR:", error);
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
+
+  
+  const addToCart = async (product) => {
+>>>>>>> Stashed changes
+
+    try {
+
+      const res =
+        await axiosInstance.post(
+          "/cart/add",
+          {
+            productId: product.id,
+            quantity: 1,
+          }
+        );
+
+      console.log("ADD CART RESPONSE:", res.data );
+
+      navigate("/cart");
+
+    } catch (err) {
+
+<<<<<<< Updated upstream
     console.log("ADD CART ERROR:", err);
 
   }
@@ -208,21 +361,32 @@ const handleWishlist = async (productId) =>{
     showToast("Failed to add product to wishlist","error");
   }
 };
+      console.log(
+        "ADD CART ERROR:",
+        err
+      );
+=======
+      console.log( "ADD CART ERROR:", err );
+    }
+>>>>>>> Stashed changes
+  };
 
   return (
 
     <div className="dashboard-container">
 
-      {/* TOP CONTROLS */}
+     
       <div className="top-controls">
 
-        {/* CATEGORY DROPDOWN */}
+        
         <div className="category-panel">
 
           <button
             className="dropdown-btn"
             onClick={() =>
-              setShowDropdown(!showDropdown)
+              setShowDropdown(
+                !showDropdown
+              )
             }
           >
             Categories ▼
@@ -232,25 +396,31 @@ const handleWishlist = async (productId) =>{
 
             <div className="dropdown-box">
 
-              {/* ALL PRODUCTS */}
+              
               <div
                 className="category-card"
                 onClick={() => {
 
-                  setFilteredProducts(products);
+                  fetchProducts();
 
                   setSelectedCategory(null);
+
+                  setSelectedSubCategory(null);
+
+                  setSubCategories([]);
 
                   setSearchTerm("");
 
                   setShowDropdown(false);
+
+                  setPage(0);
 
                 }}
               >
                 All Products
               </div>
 
-              {/* CATEGORY LIST */}
+              
               {categories.map((cat) => (
 
                 <div
@@ -264,8 +434,7 @@ const handleWishlist = async (productId) =>{
                   }
                 >
 
-                  {cat.categoryName ||
-                    cat.category_name}
+                  { cat.categoryName || cat.category_name }
 
                 </div>
 
@@ -277,7 +446,16 @@ const handleWishlist = async (productId) =>{
 
         </div>
 
-        {/* SEARCH BAR */}
+        
+        <div className="products-heading">
+
+          <h1>
+            Products
+          </h1>
+
+        </div>
+
+       
         <div className="search-box">
 
           <input
@@ -285,7 +463,9 @@ const handleWishlist = async (productId) =>{
             placeholder="Search products..."
             value={searchTerm}
             onChange={(e) =>
-              handleSearch(e.target.value)
+              handleSearch(
+                e.target.value
+              )
             }
             className="search-input"
           />
@@ -294,88 +474,243 @@ const handleWishlist = async (productId) =>{
 
       </div>
 
-      {/* PRODUCTS SECTION */}
+  
       <div className="products-section">
 
-        {/* CATEGORY TITLE */}
+        
         {selectedCategory && (
 
           <h2 className="category-title">
 
-            {selectedCategory.categoryName ||
+            {
+              selectedCategory.categoryName ||
 
-              selectedCategory.category_name}
+              selectedCategory.category_name
+            }
 
           </h2>
 
         )}
 
-        {/* PRODUCTS */}
-        {filteredProducts.length > 0 ? (
+       
+        {subCategories.length > 0 && (
 
-          <div className="products-grid">
+          <div className="subcategory-container">
 
-            {filteredProducts.map((product) => (
+            <button
+              className={
+                selectedSubCategory === null
+                  ? "subcategory-btn active-sub-btn"
+                  : "subcategory-btn"
+              }
+              onClick={async () => {
 
-              <div
-                key={product.id}
-                className="product-card"
+                const categoryName =
+                  selectedCategory.categoryName ||
+
+                  selectedCategory.category_name;
+
+                const filtered =
+                  await getProductsByCategory(categoryName);
+
+                setFilteredProducts(filtered);
+
+                setSelectedSubCategory(null);
+              }}
+            >
+              All
+            </button>
+
+           
+            {subCategories.map((sub) => (
+
+              <button
+                key={
+                  sub.id ||
+                  sub.subCategoryId ||
+                  sub.sub_category_id
+                }
+                className={
+                  selectedSubCategory === sub
+                    ? "subcategory-btn active-sub-btn"
+                    : "subcategory-btn"
+                }
+                onClick={() =>
+                  handleSubCategoryClick(
+                    sub
+                  )
+                }
               >
 
-                <img
-                  src={
-                    product.imageUrl ||
+                {
+                  sub.subCategoryName ||
 
-                    "https://via.placeholder.com/300"
-                  }
-                  alt={product.name}
-                  className="product-img"
-                />
+                  sub.sub_category_name ||
 
-                <div className="product-content">
+                  sub.name
+                }
 
-                  <h3 className="product-title">
+              </button>
 
-                    {product.name}
+            ))}
 
-                  </h3>
+          </div>
 
-                  <p className="product-description">
+        )}
 
-                    {product.description}
+      
+       
+{loading ? (
 
-                  </p>
+  <div className="loader-container">
 
-                  <h4 className="product-price">
+    <div className="loader"></div>
 
-                    ₹{product.price}
+  </div>
 
-                  </h4>
+) : filteredProducts.length > 0 ? (
 
-                  <div className="product-actions">
+          <>
 
-                  <button
-                  className="cart-btn"
-                     onClick={() => addToCart(product)}
->
-  Add Cart
-</button>
+            <div className="products-grid">
+
+              {filteredProducts.map((product) => (
+
+                <div
+                  key={product.id}
+                  className="product-card"
+                  onClick={() => {
+
+                    setSelectedProduct(
+                      product
+                    );
+
+                    setCurrentImageIndex(0);
+
+                  }}
+                >
+
+                  <img
+                    src={
+                      product.images?.[0] ||
+
+                      product.imageUrl ||
+
+                      "https://via.placeholder.com/300"
+                    }
+                    alt={product.name}
+                    className="product-img"
+                  />
+
+                  <div className="product-content">
+
+                    <h3 className="product-title">
+
+                      {product.name}
+
+                    </h3>
+
+                    <p className="product-description">
+
+                      {product.description}
+
+                    </p>
+
+                    <h4 className="product-price">
+
+                      ₹{product.price}
+
+                    </h4>
+
+                    <div className="product-actions">
+
+                      <button
+                        className="cart-btn"
+                        onClick={(e) => {
+
+                          e.stopPropagation();
+
+                          addToCart(product);
+
+                        }}
+                      >
+                        🛒 Add Cart
+                      </button>
 
                     <button className="wishlist-btn" onClick={() => handleWishlist(product.id)}>
 
                       Wishlist
 
                     </button>
+                      <button
+                        className="wishlist-btn"
+                        onClick={(e) =>
+                          e.stopPropagation()
+                        }
+                      >
+                       ❤️ Wishlist
+                      </button>
+
+                    </div>
 
                   </div>
 
                 </div>
 
-              </div>
+              ))}
 
-            ))}
+            </div>
 
-          </div>
+     
+
+            <div className="pagination-container">
+
+  <button
+    disabled={page === 0}
+    onClick={() => setPage(page - 1)}
+    className="page-btn"
+  >
+    Prev
+  </button>
+
+  {[...Array(totalPages)]
+    .slice(
+      Math.floor(page / 3) * 3,
+      Math.floor(page / 3) * 3 + 3
+    )
+    .map((_, index) => {
+
+      const actualPage =
+        Math.floor(page / 3) * 3 + index;
+
+      return (
+
+        <button
+          key={actualPage}
+          onClick={() => setPage(actualPage)}
+          className={
+            page === actualPage
+              ? "page-btn active-page"
+              : "page-btn"
+          }
+        >
+          {actualPage + 1}
+        </button>
+
+      );
+    })}
+
+  <button
+    disabled={page + 1 === totalPages}
+    onClick={() => setPage(page + 1)}
+    className="page-btn"
+  >
+    Next
+  </button>
+
+</div>
+
+          </>
 
         ) : (
 
@@ -398,6 +733,141 @@ const handleWishlist = async (productId) =>{
         <Toast message={toast.message} type={toast.type} />
     )
 }
+
+      {/* PRODUCT MODAL */}
+      {selectedProduct && (
+
+        <div className="product-modal-overlay">
+
+          <div className="product-modal">
+
+            <button
+              className="close-btn"
+              onClick={() => {
+
+                setSelectedProduct(null);
+
+                setCurrentImageIndex(0);
+
+              }}
+            >
+              ✖
+            </button>
+
+            <img
+              src={
+                selectedProduct.images?.[
+                  currentImageIndex
+                ] ||
+
+                selectedProduct.imageUrl ||
+
+                "https://via.placeholder.com/300"
+              }
+              alt={selectedProduct.name}
+              className="modal-product-img"
+            />
+
+{selectedProduct.images &&
+  selectedProduct.images.length > 1 && (
+
+  <>
+
+   
+    <button
+      className="slider-arrow left-arrow"
+      onClick={() =>
+        setCurrentImageIndex(
+
+          currentImageIndex === 0
+            ? selectedProduct.images.length - 1
+            : currentImageIndex - 1
+        )
+      }
+    >
+      ❮
+    </button>
+
+  
+    <button
+      className="slider-arrow right-arrow"
+      onClick={() =>
+        setCurrentImageIndex(
+
+          currentImageIndex ===
+          selectedProduct.images.length - 1
+            ? 0
+            : currentImageIndex + 1
+        )
+      }
+    >
+      ❯
+    </button>
+
+    <div className="slider-dots">
+
+      {selectedProduct.images.map(
+        (_, index) => (
+
+          <span
+            key={index}
+            className={
+              currentImageIndex === index
+                ? "dot active-dot"
+                : "dot"
+            }
+            onClick={() =>
+              setCurrentImageIndex(index)
+            }
+          />
+        )
+      )}
+
+    </div>
+
+  </>
+)}
+
+          <div className="modal-product-content">
+
+  <h2>
+    {selectedProduct.name}
+  </h2>
+
+  <p>
+    {selectedProduct.description}
+  </p>
+
+  <h3>
+    ₹{selectedProduct.price}
+  </h3>
+
+  <div className="modal-actions">
+
+    <button
+      className="cart-btn"
+      onClick={() =>
+        addToCart(selectedProduct)
+      }
+    >
+      🛒 Add Cart
+    </button>
+
+    <button
+      className="wishlist-btn"
+    >
+       ❤️ Wishlist
+    </button>
+
+  </div>
+
+</div>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
   );

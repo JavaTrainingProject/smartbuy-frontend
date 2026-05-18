@@ -1,93 +1,134 @@
 import axiosInstance from "./axiosInstance";
 
 
-export const getProductsByCategory = (
+export const getProductsByCategory = async (
   categoryName
 ) => {
 
-  return axiosInstance.get(
-    `/products/category/${categoryName}`
+  const res = await axiosInstance.get(
+    "/products?page=0&size=50"
+  );
+
+  const products =
+    res.data?.data?.content || [];
+
+  return products.filter(
+    (product) =>
+      product.categoryName
+        ?.toLowerCase() ===
+      categoryName?.toLowerCase()
   );
 };
 
-export const getAllProducts = (
+
+export const getAllProducts = async (
   page = 0,
   size = 6
 ) => {
 
-  return axiosInstance.get(
-    `/products?page=${page}&size=${size}`
+  const res =
+    await axiosInstance.get(
+      `/products?page=${page}&size=${size}`
+    );
+
+  console.log(
+    "Product Response:",
+    res.data
   );
+
+  return res;
 };
 
 
-export const getProductById = (id) => {
+export const getProductById = async (
+  id
+) => {
 
-  return axiosInstance.get(
-    `/products/${id}`
-  );
+  const res =
+    await axiosInstance.get(
+      `/products/${id}`
+    );
+
+  return res.data?.data;
 };
 
-export const createProduct = (
+
+export const createProduct = async (
   formData
 ) => {
 
-  return axiosInstance.post(
-    `/products/create`,
-    formData,
-    {
-      headers: {
-        "Content-Type":
-          "multipart/form-data",
-      },
-    }
-  );
+  const res =
+    await axiosInstance.post(
+      `/products/create`,
+      formData,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
+    );
+
+  return res.data;
 };
 
 
-export const updateProduct = (
+export const updateProduct = async (
   id,
   formData
 ) => {
 
-  return axiosInstance.put(
-    `/products/${id}`,
-    formData,
-    {
-      headers: {
-        "Content-Type":
-          "multipart/form-data",
-      },
-    }
-  );
+  const res =
+    await axiosInstance.put(
+      `/products/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
+    );
+
+  return res.data;
 };
 
 
-export const deleteProduct = (
+export const deleteProduct = async (
   id
 ) => {
 
-  return axiosInstance.delete(
-    `/products/${id}`
-  );
+  const res =
+    await axiosInstance.delete(
+      `/products/${id}`
+    );
+
+  return res.data;
 };
 
-export const softDeleteProduct = (
+
+export const softDeleteProduct = async (
   id
 ) => {
 
-  return axiosInstance.delete(
-    `/products/${id}`
-  );
+  const res =
+    await axiosInstance.delete(
+      `/products/${id}`
+    );
+
+  return res.data;
 };
 
 
-export const toggleProductStatus = (
+export const toggleProductStatus = async (
   id,
   status
 ) => {
 
-  return axiosInstance.patch(
-    `/products/${id}/status?status=${status}`
-  );
+  const res =
+    await axiosInstance.patch(
+      `/products/${id}/status?status=${status}`
+    );
+
+  return res.data;
 };
