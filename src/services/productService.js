@@ -1,63 +1,84 @@
 import axiosInstance from "./axiosInstance";
 
-// GET ALL PRODUCTS
-export const getAllProducts = async () => {
 
-  const res = await axiosInstance.get(
-    "/products?page=0&size=50"
+export const getAllProducts = (
+  page = 0,
+  size = 6
+) => {
+
+  return axiosInstance.get(
+    `/products?page=${page}&size=${size}`
   );
-
-  console.log("PRODUCT RESPONSE:", res.data);
-
-  return res.data?.data?.content || [];
 };
 
 
-// GET PRODUCT BY ID
-export const getProductById = async (id) => {
+export const getProductById = (id) => {
 
-  const res = await axiosInstance.get(
+  return axiosInstance.get(
     `/products/${id}`
   );
-
-  return res.data?.data;
 };
 
-export const createProduct = async (formData) => {
+export const createProduct = (
+  formData
+) => {
 
-  const res = await axiosInstance.post(
-    "/products",
+  return axiosInstance.post(
+    `/products/create`,
     formData,
     {
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type":
+          "multipart/form-data",
       },
     }
   );
-
-  return res.data;
 };
 
 
-
-
-// GET PRODUCTS BY CATEGORY
-export const getProductsByCategory = async (
-  categoryName
+export const updateProduct = (
+  id,
+  formData
 ) => {
 
-  const res = await axiosInstance.get(
-    "/products?page=0&size=50"
+  return axiosInstance.put(
+    `/products/${id}`,
+    formData,
+    {
+      headers: {
+        "Content-Type":
+          "multipart/form-data",
+      },
+    }
   );
+};
 
-  const products =
-    res.data?.data?.content || [];
 
-  return products.filter(
-    (product) =>
+export const deleteProduct = (
+  id
+) => {
 
-      product.categoryName
-        ?.toLowerCase() ===
-      categoryName?.toLowerCase()
+  return axiosInstance.delete(
+    `/products/${id}`
+  );
+};
+
+export const softDeleteProduct = (
+  id
+) => {
+
+  return axiosInstance.delete(
+    `/products/${id}`
+  );
+};
+
+
+export const toggleProductStatus = (
+  id,
+  status
+) => {
+
+  return axiosInstance.patch(
+    `/products/${id}/status?status=${status}`
   );
 };
