@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 
-import axiosInstance from "../services/axiosInstance";
-
 import {
   getAllProducts,
   createProduct,
   updateProduct,
   softDeleteProduct,
-  getProductsByCategory,
 } from "../services/productService";
 
 import API from "../services/axiosInstance";
@@ -24,44 +21,38 @@ function ProductPage() {
 
   const [subCategories, setSubCategories] = useState([]);
 
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
   const [filteredSubCategories, setFilteredSubCategories] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
 
   const [successPopup, setSuccessPopup] = useState("");
 
-  const [imagePreview, setImagePreview] = useState([]);
+  const [imagePreview, setImagePreview] = useState("");
 
   const [editingId, setEditingId] = useState(null);
+
 
   const [page, setPage] = useState(0);
 
   const [totalPages, setTotalPages] = useState(0);
 
-  const [imageFiles, setImageFiles] = useState([]);
-
   const [formData, setFormData] = useState({
-
     categoryId: "",
-
     subCategoryId: "",
-
     name: "",
-
     price: "",
-
     quantity: "",
-
     description: "",
+    image: null,
   });
+
 
   useEffect(() => {
 
     fetchProducts();
 
   }, [page]);
+
 
   useEffect(() => {
 
@@ -70,6 +61,7 @@ function ProductPage() {
     fetchSubCategories();
 
   }, []);
+
 
   const fetchProducts = async () => {
 
@@ -80,6 +72,7 @@ function ProductPage() {
 
       const data =
         response.data.data;
+
 
       const sortedProducts =
         data.content.sort(
@@ -103,6 +96,7 @@ function ProductPage() {
     }
   };
 
+
   const fetchCategories = async () => {
 
     try {
@@ -122,6 +116,7 @@ function ProductPage() {
     }
   };
 
+
   const fetchSubCategories = async () => {
 
     try {
@@ -139,6 +134,7 @@ function ProductPage() {
     }
   };
 
+
   const handleChange = (e) => {
 
     const {
@@ -147,25 +143,27 @@ function ProductPage() {
       files,
     } = e.target;
 
-    
-    if (name === "images") {
 
-      const selectedFiles =
-        [...files];
+    if (name === "image") {
 
-      setImageFiles(selectedFiles);
+      const file = files[0];
 
-      const previewUrls =
-        selectedFiles.map((file) =>
+      if (file) {
+
+        setFormData({
+          ...formData,
+          image: file,
+        });
+
+        setImagePreview(
           URL.createObjectURL(file)
         );
-
-      setImagePreview(previewUrls);
+      }
 
       return;
     }
 
-    
+
     if (name === "categoryId") {
 
       const filtered =
@@ -188,11 +186,13 @@ function ProductPage() {
       return;
     }
 
+
     setFormData({
       ...formData,
       [name]: value,
     });
   };
+
 
   const handleSubmit = async (e) => {
 
@@ -232,14 +232,15 @@ function ProductPage() {
         JSON.stringify(productData)
       );
 
-      
-      imageFiles.forEach((file) => {
+
+      if (formData.image) {
 
         data.append(
           "images",
-          file
+          formData.image
         );
-      });
+      }
+
 
       if (editingId) {
 
@@ -261,31 +262,27 @@ function ProductPage() {
         );
       }
 
+
       fetchProducts();
+
 
       setShowModal(false);
 
+
       setEditingId(null);
 
-      setImagePreview([]);
-
-      setImageFiles([]);
+      setImagePreview("");
 
       setFilteredSubCategories([]);
 
       setFormData({
-
         categoryId: "",
-
         subCategoryId: "",
-
         name: "",
-
         price: "",
-
         quantity: "",
-
         description: "",
+        image: null,
       });
 
       setTimeout(() => {
@@ -304,6 +301,7 @@ function ProductPage() {
     }
   };
 
+
   const handleEdit = (product) => {
 
     setEditingId(product.id);
@@ -311,10 +309,10 @@ function ProductPage() {
     setFormData({
 
       categoryId:
-        product.categoryId || "",
+        product.categoryId,
 
       subCategoryId:
-        product.subCategoryId || "",
+        product.subCategoryId,
 
       name:
         product.name || "",
@@ -329,26 +327,46 @@ function ProductPage() {
 
       description:
         product.description || "",
+
+      image: null,
     });
 
     setImagePreview(
-      product.images || []
+      product.imageUrls || ""
     );
 
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
+
+  const handleToggle = async (product) => {
 
     try {
 
-      await softDeleteProduct(id);
+
+      if (product.status === "ACTIVE") {
+
+        await API.delete(
+          `/products/${product.id}/status`
+        );
+
+        setSuccessPopup(
+          "Product Deactivated Successfully"
+        );
+
+      } else {
+
+
+        await API.patch(
+          `/products/${product.id}/status?status=ACTIVE`
+        );
+
+        setSuccessPopup(
+          "Product Activated Successfully"
+        );
+      }
 
       fetchProducts();
-
-      setSuccessPopup(
-        "Product Deleted Successfully"
-      );
 
       setTimeout(() => {
 
@@ -358,7 +376,10 @@ function ProductPage() {
 
     } catch (error) {
 
-      console.log(error);
+      console.log(
+        error.response?.data || error.message
+      );
+
     }
   };
 
@@ -378,25 +399,18 @@ function ProductPage() {
 
             setEditingId(null);
 
-            setImagePreview([]);
-
-            setImageFiles([]);
+            setImagePreview("");
 
             setFilteredSubCategories([]);
 
             setFormData({
-
               categoryId: "",
-
               subCategoryId: "",
-
               name: "",
-
               price: "",
-
               quantity: "",
-
               description: "",
+              image: null,
             });
           }}
         >
@@ -404,6 +418,7 @@ function ProductPage() {
         </button>
 
       </div>
+
 
       {successPopup && (
 
@@ -413,6 +428,7 @@ function ProductPage() {
 
         </div>
       )}
+
 
       {showModal && (
 
@@ -444,9 +460,11 @@ function ProductPage() {
               onSubmit={handleSubmit}
             >
 
+
               {!editingId && (
 
                 <>
+
 
                   <select
                     name="categoryId"
@@ -502,6 +520,7 @@ function ProductPage() {
                 </>
               )}
 
+
               <input
                 type="text"
                 name="name"
@@ -510,6 +529,7 @@ function ProductPage() {
                 onChange={handleChange}
                 required
               />
+
 
               <input
                 type="number"
@@ -520,6 +540,7 @@ function ProductPage() {
                 required
               />
 
+
               <input
                 type="number"
                 name="quantity"
@@ -529,6 +550,7 @@ function ProductPage() {
                 required
               />
 
+
               <textarea
                 name="description"
                 placeholder="Description"
@@ -536,32 +558,27 @@ function ProductPage() {
                 onChange={handleChange}
               />
 
+
               <input
                 type="file"
-                name="images"
-                multiple
+                name="image"
                 accept="image/*"
                 onChange={handleChange}
               />
 
-              {imagePreview.length > 0 && (
+
+              {imagePreview && (
 
                 <div className="preview-box">
 
-                  {imagePreview.map(
-                    (img, index) => (
-
-                      <img
-                        key={index}
-                        src={img}
-                        alt="Preview"
-                      />
-
-                    )
-                  )}
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                  />
 
                 </div>
               )}
+
 
               <div className="form-buttons">
 
@@ -593,6 +610,7 @@ function ProductPage() {
         </div>
       )}
 
+
       <div className="product-grid">
 
         {products.map((product) => (
@@ -602,12 +620,13 @@ function ProductPage() {
             key={product.id}
           >
 
+
             <div className="image-box">
 
               <img
                 src={
-                  product.imageUrl
-                    ? product.imageUrl
+                  product.imageUrls
+                    ? product.imageUrls
                     : "https://via.placeholder.com/300x200?text=No+Image"
                 }
                 alt={product.name}
@@ -627,15 +646,17 @@ function ProductPage() {
               </button>
 
               <button
-                className="delete-btn"
-                onClick={() =>
-                  handleDelete(product.id)
-                }
+                className={`toggle-btn ${product.status === "ACTIVE"
+                    ? "active"
+                    : "inactive"
+                  }`}
+                onClick={() => handleToggle(product)}
               >
-                Delete
+                <div className="toggle-circle"></div>
               </button>
 
             </div>
+
 
             <div className="product-info">
 
@@ -676,6 +697,7 @@ function ProductPage() {
 
       </div>
 
+
       <div className="pagination">
 
         <button
@@ -707,4 +729,5 @@ function ProductPage() {
     </div>
   );
 }
+
 export default ProductPage;
