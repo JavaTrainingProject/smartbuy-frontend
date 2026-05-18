@@ -213,6 +213,18 @@ function SubCategoryPage() {
           status: newStatus,
         }
       );
+      if (newStatus === "INACTIVE") {
+
+      setSuccessMsg(
+        "Subcategory Deactivated Successfully"
+      );
+
+    } else {
+
+      setSuccessMsg(
+        "Subcategory Activated Successfully"
+      );
+    }
 
       fetchSubCategories();
 
