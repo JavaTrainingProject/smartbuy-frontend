@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../services/axiosInstance";
 
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import UserNavbar from "../components/UserNavbar";
 
 import "../styles/OrderPage.css";
@@ -13,12 +11,7 @@ export default function OrderPage() {
 
   // ================= FETCH ORDERS =================
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/");
-      return;
-    }
+  
 
     const fetchOrders = async () => {
 
@@ -40,7 +33,7 @@ export default function OrderPage() {
 
     <div className="order-page">
 
-      <Header />
+   
 
       <div className="order-layout">
 
@@ -131,7 +124,7 @@ export default function OrderPage() {
 
       </div>
 
-      <Footer />
+     
 
     </div>
   );
