@@ -1,6 +1,3 @@
-
-
-
 import { useEffect, useState } from "react";
 
 import "../styles/UserBoard.css";
@@ -8,14 +5,17 @@ import "../styles/UserBoard.css";
 import { useNavigate } from "react-router-dom";
 
 import "../styles/UserDashboard.css";
+<<<<<<< Updated upstream
 import Toast from "../components/Toast";
 import {getAllProducts,getProductsByCategory} from "../services/productService";
 import { getActiveCategories } from "../services/categoryService";
 import { addToWishlist } from "../services/wishlistService"
+=======
 
 import {getAllProducts, getProductsByCategory} from "../services/productService";
 
-import { getActiveCategories} from "../services/categoryService";
+import {getActiveCategories, getSubCategoriesByCategory} from "../services/categoryService";
+>>>>>>> Stashed changes
 
 import axiosInstance from "../services/axiosInstance";
 
@@ -25,28 +25,38 @@ function UserDashboard() {
 
   const [filteredProducts, setFilteredProducts] = useState([]);
 
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] =useState([]);
+
+  const [subCategories, setSubCategories] =useState([]);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedSubCategory, setSelectedSubCategory] =useState(null);
 
+<<<<<<< Updated upstream
   const [searchTerm, setSearchTerm] = useState("");
   const [toast, setToast] = useState({
     show: false,
     message: "",
     type: ""
 });
+=======
+  const [showDropdown, setShowDropdown] =useState(false);
+>>>>>>> Stashed changes
 
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [searchTerm, setSearchTerm] =useState("");
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedProduct,setSelectedProduct] =useState(null);
+
+  const [currentImageIndex,setCurrentImageIndex] =useState(0);
 
   const [page, setPage] = useState(0);
 
   const [totalPages, setTotalPages] = useState(0);
 
   const size = 6;
+
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -84,16 +94,16 @@ function UserDashboard() {
   const fetchProducts = async () => {
 
     try {
+      setLoading(true);
 
-      const res = await getAllProducts(page, size);
+      const res =
+        await getAllProducts(page, size);
 
-      console.log("ALL PRODUCTS:", res);
+      console.log( "ALL PRODUCTS:", res);
 
-      const productData =
-        res?.data?.data?.content || [];
+      const productData = res?.data?.data?.content || [];
 
-      const total =
-        res?.data?.data?.totalPages || 0;
+      const total = res?.data?.data?.totalPages || 0;
 
       setProducts(productData);
 
@@ -104,10 +114,13 @@ function UserDashboard() {
     } catch (err) {
 
       console.error("PRODUCT ERROR:", err);
-
     }
-  };
+  finally {
+     setLoading(false);
+  }
+};
 
+  
   const fetchCategories = async () => {
 
     try {
@@ -121,70 +134,171 @@ function UserDashboard() {
     } catch (err) {
 
       console.error("CATEGORY ERROR:", err);
-
     }
   };
 
-  const handleCategoryClick = async (category) => {
+  const handleCategoryClick =
+    async (category) => {
 
     setSelectedCategory(category);
 
+    setSelectedSubCategory(null);
+
     const categoryName =
-      category.categoryName ||
-      category.category_name;
+      category.categoryName || ategory.category_name;
 
     try {
 
+     
       const filtered =
-        await getProductsByCategory(
-          categoryName
-        );
+        await getProductsByCategory(categoryName);
 
       setFilteredProducts(filtered);
+
+     
+      const categoryId =
+        category.id || category.category_id;
+
+      const subRes =
+        await getSubCategoriesByCategory( categoryId );
+
+      console.log("SUBCATEGORY RESPONSE:", subRes.data );
+
+      let subList = [];
+
+      if (Array.isArray(subRes.data)) {
+
+        subList = subRes.data;
+
+      }
+      else if (
+        Array.isArray(subRes.data.data)
+      ) {
+
+        subList = subRes.data.data;
+
+      }
+      else if (
+        Array.isArray( subRes.data.data?.content )
+      ) {
+
+        subList = subRes.data.data.content;
+      }
+
+      setSubCategories(subList);
 
       setPage(0);
 
     } catch (error) {
 
-      console.log(
-        "CATEGORY FILTER ERROR:",
-        error
-      );
+      console.log("CATEGORY FILTER ERROR:", error );
 
       setFilteredProducts([]);
+
+      setSubCategories([]);
     }
 
     setShowDropdown(false);
   };
 
-  const handleSearch = (value) => {
+
+const handleSubCategoryClick = async (subCategory) => {
+
+  setLoading(true);
+
+  try {
+
+    
+    setSelectedSubCategory(subCategory);
+
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const subCategoryName =
+      subCategory.subCategoryName ||
+      subCategory.sub_category_name ||
+      subCategory.name;
+
+    
+    const filtered = products.filter(
+      (product) =>
+        (
+          product.subCategoryName ||
+          product.sub_category_name
+        )
+          ?.toLowerCase()
+          .trim() ===
+        subCategoryName.toLowerCase().trim()
+    );
+
+    setFilteredProducts(filtered);
+
+    setPage(0);
+
+  } catch (error) {
+
+    console.log("SUBCATEGORY ERROR:", error);
+
+    setFilteredProducts([]);
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
+  
+ 
+
+  const handleSearch = async (value) => {
+
+  setLoading(true);
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  try {
 
     setSearchTerm(value);
 
     let filtered = products;
 
+    
     if (selectedCategory) {
 
       filtered = filtered.filter(
-
         (product) =>
-
           product.categoryName
             ?.toLowerCase() ===
-
           (
             selectedCategory.categoryName ||
-
             selectedCategory.category_name
           )
             ?.toLowerCase()
       );
     }
 
+    
+    if (selectedSubCategory) {
+
+      filtered = filtered.filter(
+        (product) =>
+          (
+            product.subCategoryName ||
+            product.sub_category_name
+          )
+            ?.toLowerCase() ===
+          (
+            selectedSubCategory.subCategoryName ||
+            selectedSubCategory.sub_category_name ||
+            selectedSubCategory.name
+          )
+            ?.toLowerCase()
+      );
+    }
+
+    
     filtered = filtered.filter(
-
       (product) =>
-
         product.name
           ?.toLowerCase()
           .includes(value.toLowerCase())
@@ -193,32 +307,45 @@ function UserDashboard() {
     setFilteredProducts(filtered);
 
     setPage(0);
-  };
 
+<<<<<<< Updated upstream
 
   
 const addToCart = async (product) => {
+=======
+  } catch (error) {
+
+    console.log("SEARCH ERROR:", error);
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
+
+  
   const addToCart = async (product) => {
+>>>>>>> Stashed changes
 
     try {
 
-      const res = await axiosInstance.post(
-        "/cart/add",
-        {
-          productId: product.id,
-          quantity: 1,
-        }
-      );
+      const res =
+        await axiosInstance.post(
+          "/cart/add",
+          {
+            productId: product.id,
+            quantity: 1,
+          }
+        );
 
-      console.log(
-        "ADD CART RESPONSE:",
-        res.data
-      );
+      console.log("ADD CART RESPONSE:", res.data );
 
       navigate("/cart");
 
     } catch (err) {
 
+<<<<<<< Updated upstream
     console.log("ADD CART ERROR:", err);
 
   }
@@ -238,23 +365,28 @@ const handleWishlist = async (productId) =>{
         "ADD CART ERROR:",
         err
       );
+=======
+      console.log( "ADD CART ERROR:", err );
     }
+>>>>>>> Stashed changes
   };
 
   return (
 
     <div className="dashboard-container">
 
-      {/* TOP CONTROLS */}
+     
       <div className="top-controls">
 
-        {/* LEFT CATEGORY */}
+        
         <div className="category-panel">
 
           <button
             className="dropdown-btn"
             onClick={() =>
-              setShowDropdown(!showDropdown)
+              setShowDropdown(
+                !showDropdown
+              )
             }
           >
             Categories ▼
@@ -264,7 +396,7 @@ const handleWishlist = async (productId) =>{
 
             <div className="dropdown-box">
 
-              {/* ALL PRODUCTS */}
+              
               <div
                 className="category-card"
                 onClick={() => {
@@ -272,6 +404,10 @@ const handleWishlist = async (productId) =>{
                   fetchProducts();
 
                   setSelectedCategory(null);
+
+                  setSelectedSubCategory(null);
+
+                  setSubCategories([]);
 
                   setSearchTerm("");
 
@@ -284,7 +420,7 @@ const handleWishlist = async (productId) =>{
                 All Products
               </div>
 
-              {/* CATEGORY LIST */}
+              
               {categories.map((cat) => (
 
                 <div
@@ -298,8 +434,7 @@ const handleWishlist = async (productId) =>{
                   }
                 >
 
-                  {cat.categoryName ||
-                    cat.category_name}
+                  { cat.categoryName || cat.category_name }
 
                 </div>
 
@@ -311,7 +446,7 @@ const handleWishlist = async (productId) =>{
 
         </div>
 
-        {/* CENTER TITLE */}
+        
         <div className="products-heading">
 
           <h1>
@@ -320,7 +455,7 @@ const handleWishlist = async (productId) =>{
 
         </div>
 
-        {/* RIGHT SEARCH */}
+       
         <div className="search-box">
 
           <input
@@ -328,7 +463,9 @@ const handleWishlist = async (productId) =>{
             placeholder="Search products..."
             value={searchTerm}
             onChange={(e) =>
-              handleSearch(e.target.value)
+              handleSearch(
+                e.target.value
+              )
             }
             className="search-input"
           />
@@ -337,24 +474,101 @@ const handleWishlist = async (productId) =>{
 
       </div>
 
-      {/* PRODUCTS SECTION */}
+  
       <div className="products-section">
 
-        {/* CATEGORY TITLE */}
+        
         {selectedCategory && (
 
           <h2 className="category-title">
 
-            {selectedCategory.categoryName ||
+            {
+              selectedCategory.categoryName ||
 
-              selectedCategory.category_name}
+              selectedCategory.category_name
+            }
 
           </h2>
 
         )}
 
-        {/* PRODUCTS */}
-        {filteredProducts.length > 0 ? (
+       
+        {subCategories.length > 0 && (
+
+          <div className="subcategory-container">
+
+            <button
+              className={
+                selectedSubCategory === null
+                  ? "subcategory-btn active-sub-btn"
+                  : "subcategory-btn"
+              }
+              onClick={async () => {
+
+                const categoryName =
+                  selectedCategory.categoryName ||
+
+                  selectedCategory.category_name;
+
+                const filtered =
+                  await getProductsByCategory(categoryName);
+
+                setFilteredProducts(filtered);
+
+                setSelectedSubCategory(null);
+              }}
+            >
+              All
+            </button>
+
+           
+            {subCategories.map((sub) => (
+
+              <button
+                key={
+                  sub.id ||
+                  sub.subCategoryId ||
+                  sub.sub_category_id
+                }
+                className={
+                  selectedSubCategory === sub
+                    ? "subcategory-btn active-sub-btn"
+                    : "subcategory-btn"
+                }
+                onClick={() =>
+                  handleSubCategoryClick(
+                    sub
+                  )
+                }
+              >
+
+                {
+                  sub.subCategoryName ||
+
+                  sub.sub_category_name ||
+
+                  sub.name
+                }
+
+              </button>
+
+            ))}
+
+          </div>
+
+        )}
+
+      
+       
+{loading ? (
+
+  <div className="loader-container">
+
+    <div className="loader"></div>
+
+  </div>
+
+) : filteredProducts.length > 0 ? (
 
           <>
 
@@ -367,7 +581,9 @@ const handleWishlist = async (productId) =>{
                   className="product-card"
                   onClick={() => {
 
-                    setSelectedProduct(product);
+                    setSelectedProduct(
+                      product
+                    );
 
                     setCurrentImageIndex(0);
 
@@ -418,7 +634,7 @@ const handleWishlist = async (productId) =>{
 
                         }}
                       >
-                        Add Cart
+                        🛒 Add Cart
                       </button>
 
                     <button className="wishlist-btn" onClick={() => handleWishlist(product.id)}>
@@ -432,7 +648,7 @@ const handleWishlist = async (productId) =>{
                           e.stopPropagation()
                         }
                       >
-                        Wishlist
+                       ❤️ Wishlist
                       </button>
 
                     </div>
@@ -445,48 +661,54 @@ const handleWishlist = async (productId) =>{
 
             </div>
 
-            {/* PAGINATION */}
+     
+
             <div className="pagination-container">
 
-              <button
-                disabled={page === 0}
-                onClick={() =>
-                  setPage(page - 1)
-                }
-                className="page-btn"
-              >
-                Prev
-              </button>
+  <button
+    disabled={page === 0}
+    onClick={() => setPage(page - 1)}
+    className="page-btn"
+  >
+    Prev
+  </button>
 
-              {[...Array(totalPages)].map((_, index) => (
+  {[...Array(totalPages)]
+    .slice(
+      Math.floor(page / 3) * 3,
+      Math.floor(page / 3) * 3 + 3
+    )
+    .map((_, index) => {
 
-                <button
-                  key={index}
-                  onClick={() =>
-                    setPage(index)
-                  }
-                  className={
-                    page === index
-                      ? "page-btn active-page"
-                      : "page-btn"
-                  }
-                >
-                  {index + 1}
-                </button>
+      const actualPage =
+        Math.floor(page / 3) * 3 + index;
 
-              ))}
+      return (
 
-              <button
-                disabled={page + 1 === totalPages}
-                onClick={() =>
-                  setPage(page + 1)
-                }
-                className="page-btn"
-              >
-                Next
-              </button>
+        <button
+          key={actualPage}
+          onClick={() => setPage(actualPage)}
+          className={
+            page === actualPage
+              ? "page-btn active-page"
+              : "page-btn"
+          }
+        >
+          {actualPage + 1}
+        </button>
 
-            </div>
+      );
+    })}
+
+  <button
+    disabled={page + 1 === totalPages}
+    onClick={() => setPage(page + 1)}
+    className="page-btn"
+  >
+    Next
+  </button>
+
+</div>
 
           </>
 
@@ -532,7 +754,6 @@ const handleWishlist = async (productId) =>{
               ✖
             </button>
 
-            {/* PRODUCT IMAGE */}
             <img
               src={
                 selectedProduct.images?.[
@@ -547,66 +768,100 @@ const handleWishlist = async (productId) =>{
               className="modal-product-img"
             />
 
-            {/* IMAGE CONTROLS */}
-            {selectedProduct.images &&
-              selectedProduct.images.length > 1 && (
+{selectedProduct.images &&
+  selectedProduct.images.length > 1 && (
 
-              <div className="image-controls">
+  <>
 
-                <button
-                  className="image-btn"
-                  onClick={() =>
+   
+    <button
+      className="slider-arrow left-arrow"
+      onClick={() =>
+        setCurrentImageIndex(
 
-                    setCurrentImageIndex(
+          currentImageIndex === 0
+            ? selectedProduct.images.length - 1
+            : currentImageIndex - 1
+        )
+      }
+    >
+      ❮
+    </button>
 
-                      currentImageIndex === 0
+  
+    <button
+      className="slider-arrow right-arrow"
+      onClick={() =>
+        setCurrentImageIndex(
 
-                        ? selectedProduct.images.length - 1
+          currentImageIndex ===
+          selectedProduct.images.length - 1
+            ? 0
+            : currentImageIndex + 1
+        )
+      }
+    >
+      ❯
+    </button>
 
-                        : currentImageIndex - 1
-                    )
-                  }
-                >
-                  ◀
-                </button>
+    <div className="slider-dots">
 
-                <button
-                  className="image-btn"
-                  onClick={() =>
+      {selectedProduct.images.map(
+        (_, index) => (
 
-                    setCurrentImageIndex(
+          <span
+            key={index}
+            className={
+              currentImageIndex === index
+                ? "dot active-dot"
+                : "dot"
+            }
+            onClick={() =>
+              setCurrentImageIndex(index)
+            }
+          />
+        )
+      )}
 
-                      currentImageIndex ===
-                      selectedProduct.images.length - 1
+    </div>
 
-                        ? 0
+  </>
+)}
 
-                        : currentImageIndex + 1
-                    )
-                  }
-                >
-                  ▶
-                </button>
+          <div className="modal-product-content">
 
-              </div>
+  <h2>
+    {selectedProduct.name}
+  </h2>
 
-            )}
+  <p>
+    {selectedProduct.description}
+  </p>
 
-            <div className="modal-product-content">
+  <h3>
+    ₹{selectedProduct.price}
+  </h3>
 
-              <h2>
-                {selectedProduct.name}
-              </h2>
+  <div className="modal-actions">
 
-              <p>
-                {selectedProduct.description}
-              </p>
+    <button
+      className="cart-btn"
+      onClick={() =>
+        addToCart(selectedProduct)
+      }
+    >
+      🛒 Add Cart
+    </button>
 
-              <h3>
-                ₹{selectedProduct.price}
-              </h3>
+    <button
+      className="wishlist-btn"
+    >
+       ❤️ Wishlist
+    </button>
 
-            </div>
+  </div>
+
+</div>
 
           </div>
 

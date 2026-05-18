@@ -8,33 +8,24 @@ export const getActiveCategories = async () => {
       "/admin/categories/active?page=0&size=50"
     );
 
-    console.log(
-      "CATEGORY API RESPONSE:",
-      res.data
-    );
+    console.log("CATEGORY API RESPONSE:", res.data);
 
-    // CASE 1
-    if (
-      res.data?.data?.content
-    ) {
+  
+    if (res.data?.data?.content) {
 
       return res.data.data.content;
 
     }
 
   
-    if (
-      Array.isArray(res.data?.data)
-    ) {
+    if (Array.isArray(res.data?.data)) {
 
       return res.data.data;
 
     }
 
   
-    if (
-      Array.isArray(res.data)
-    ) {
+    if (Array.isArray(res.data)) {
 
       return res.data;
 
@@ -44,12 +35,17 @@ export const getActiveCategories = async () => {
 
   } catch (error) {
 
-    console.log(
-      "CATEGORY FETCH ERROR:",
-      error
-    );
+    console.log("CATEGORY FETCH ERROR:", error);
 
     return [];
 
   }
+};
+
+export const getSubCategoriesByCategory =
+  async (categoryId) => {
+
+    return await axiosInstance.get(
+      `/subcategory/categories/${categoryId}/subcategories`
+    );
 };

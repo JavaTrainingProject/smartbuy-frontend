@@ -1,17 +1,11 @@
 import axios from 'axios';
-import {
-  getAccessToken,
-  getRefreshToken,
-  clearTokens,
-  setAccessToken,
-  setRefreshToken
-} from "./authService";
+import {getAccessToken, getRefreshToken,
+  clearTokens, setAccessToken, setRefreshToken} from "./authService";
 
 const axiosInstance = axios.create({
   baseURL: "http://localhost:8080/api",
 });
 
-// 🔹 Attach token
 axiosInstance.interceptors.request.use((config) => {
   const token = getAccessToken();
   if (token) {
