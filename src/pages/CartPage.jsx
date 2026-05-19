@@ -127,7 +127,6 @@ export default function CartPage() {
                     ₹ {item.price * item.quantity}
                   </div>
 
-                  {/* ONLY ONE REMOVE BUTTON */}
                   <button
                     className="remove-btn"
                     onClick={() => removeItem(item.id)}
