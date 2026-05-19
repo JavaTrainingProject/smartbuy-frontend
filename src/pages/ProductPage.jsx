@@ -629,8 +629,8 @@ function ProductPage() {
 
               <img
                 src={
-                  product.imageUrls
-                    ? product.imageUrls
+                  product.imageUrl
+                    ? product.imageUrl
                     : "https://via.placeholder.com/300x200?text=No+Image"
                 }
                 alt={product.name}
