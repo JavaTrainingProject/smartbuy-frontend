@@ -132,3 +132,10 @@ export const toggleProductStatus = async (
 
   return res.data;
 };
+
+
+export const searchProducts = async (productName) => {
+  return await axiosInstance.get(
+    `/products/getall-product?productName=${productName}`
+  );
+};

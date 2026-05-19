@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 import "../styles/UserBoard.css";
@@ -8,9 +7,15 @@ import { useNavigate } from "react-router-dom";
 
 import Toast from "../components/Toast";
 
-import { getAllProducts, getProductsByCategory} from "../services/productService";
+import {
+  getAllProducts,
+  getProductsByCategory
+} from "../services/productService";
 
-import { getActiveCategories, getSubCategoriesByCategory} from "../services/categoryService";
+import {
+  getActiveCategories,
+  getSubCategoriesByCategory
+} from "../services/categoryService";
 
 import { addToWishlist } from "../services/wishlistService";
 
@@ -90,15 +95,9 @@ function UserDashboard() {
       const res =
         await getAllProducts(page, size);
 
-      console.log(
-        "ALL PRODUCTS:",
-        res
-      );
-
       let productData =
         res?.data?.data?.content || [];
 
-      // latest products first
       productData = productData.sort(
         (a, b) => b.id - a.id
       );
@@ -132,11 +131,6 @@ function UserDashboard() {
       const res =
         await getActiveCategories();
 
-      console.log(
-        "CATEGORIES:",
-        res
-      );
-
       setCategories(res || []);
 
     } catch (err) {
@@ -163,31 +157,10 @@ function UserDashboard() {
           category.categoryName ||
           category.category_name;
 
-        const response =
+        const finalProducts =
           await getProductsByCategory(
             categoryName
           );
-
-        console.log(
-          "CATEGORY PRODUCTS:",
-          response
-        );
-
-        let finalProducts =
-          response?.data?.data ||
-          response?.data ||
-          [];
-
-        if (!Array.isArray(finalProducts)) {
-
-          finalProducts =
-            finalProducts?.content || [];
-        }
-
-        // latest first
-        finalProducts = finalProducts.sort(
-          (a, b) => b.id - a.id
-        );
 
         setFilteredProducts(finalProducts);
 
@@ -205,11 +178,6 @@ function UserDashboard() {
           await getSubCategoriesByCategory(
             categoryId
           );
-
-        console.log(
-          "SUBCATEGORY RESPONSE:",
-          subRes.data
-        );
 
         let subList = [];
 
@@ -255,184 +223,168 @@ function UserDashboard() {
         setShowDropdown(false);
       }
     };
+const handleSubCategoryClick =
+  async (subCategory) => {
 
-  const handleSubCategoryClick =
-    async (subCategory) => {
+    setLoading(true);
+
+    try {
+
+      setSelectedSubCategory(subCategory);
+
+      const subCategoryId =
+        subCategory.subCategoryId ||
+        subCategory.id ||
+        subCategory.sub_category_id;
+
+      console.log(
+        "SUBCATEGORY ID:",
+        subCategoryId
+      );
+
+      const categoryName =
+        selectedCategory.categoryName ||
+        selectedCategory.category_name;
+
+      const categoryProducts =
+        await getProductsByCategory(
+          categoryName
+        );
+
+      console.log(
+        "CATEGORY PRODUCTS:",
+        categoryProducts
+      );
+
+      const filteredProducts =
+        categoryProducts.filter(
+          (product) => {
+
+            return Number(
+              product.subCategoryId
+            ) === Number(subCategoryId);
+          }
+        );
+
+      console.log(
+        "FILTERED PRODUCTS:",
+        filteredProducts
+      );
+
+      setFilteredProducts(
+        filteredProducts
+      );
+
+      setTotalPages(
+        Math.ceil(
+          filteredProducts.length / size
+        )
+      );
+
+      setPage(0);
+
+    } catch (error) {
+
+      console.log(
+        "SUBCATEGORY ERROR:",
+        error
+      );
+
+      setFilteredProducts([]);
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async (value) => {
+
+    setSearchTerm(value);
+
+    try {
 
       setLoading(true);
 
-      try {
+      const res =
+        await getAllProducts(0, 1000);
 
-        setSelectedSubCategory(
-          subCategory
-        );
+      let allProducts =
+        res?.data?.data?.content || [];
 
-        const subCategoryName =
-          (
-            subCategory.subCategoryName ||
-            subCategory.sub_category_name ||
-            subCategory.name
-          )
-            ?.toLowerCase()
-            .trim();
+      if (value.trim() === "") {
 
-        const categoryName =
-          selectedCategory.categoryName ||
-          selectedCategory.category_name;
-
-        const response =
-          await getProductsByCategory(
-            categoryName
-          );
-
-        let categoryProducts =
-          response?.data?.data ||
-          response?.data ||
-          [];
-
-        if (!Array.isArray(categoryProducts)) {
-
-          categoryProducts =
-            categoryProducts?.content || [];
-        }
-
-        const filtered =
-          categoryProducts.filter(
-            (product) =>
-              (
-                product.subCategoryName ||
-                product.sub_category_name
-              )
-                ?.toLowerCase()
-                .trim() ===
-              subCategoryName
-          );
-
-        console.log(
-          "FILTERED PRODUCTS:",
-          filtered
-        );
-
-        setFilteredProducts(filtered);
+        setFilteredProducts(allProducts);
 
         setTotalPages(
           Math.ceil(
-            filtered.length / size
+            allProducts.length / size
           )
         );
 
-        setPage(0);
-
-      } catch (error) {
-
-        console.log(
-          "SUBCATEGORY ERROR:",
-          error
-        );
-
-        setFilteredProducts([]);
-
-      } finally {
-
         setLoading(false);
+
+        return;
       }
-    };
 
-  const handleSearch =
-    async (value) => {
+      const filtered =
+        allProducts.filter((product) => {
 
-      setLoading(true);
+          const productName =
+            product?.name
+              ?.toString()
+              .toLowerCase()
+              .trim() || "";
 
-      try {
+          const searchValue =
+            value
+              .toLowerCase()
+              .trim();
 
-        setSearchTerm(value);
-
-        let filtered = [...products];
-
-        if (selectedCategory) {
-
-          filtered = filtered.filter(
-            (product) =>
-              product.categoryName
-                ?.toLowerCase() ===
-              (
-                selectedCategory.categoryName ||
-                selectedCategory.category_name
-              )
-                ?.toLowerCase()
+          return productName.includes(
+            searchValue
           );
-        }
+        });
 
-        if (selectedSubCategory) {
+      setFilteredProducts(filtered);
 
-          filtered = filtered.filter(
-            (product) =>
-              (
-                product.subCategoryName ||
-                product.sub_category_name
-              )
-                ?.toLowerCase() ===
-              (
-                selectedSubCategory.subCategoryName ||
-                selectedSubCategory.sub_category_name ||
-                selectedSubCategory.name
-              )
-                ?.toLowerCase()
-          );
-        }
+      setPage(0);
 
-        filtered = filtered.filter(
-          (product) =>
-            product.name
-              ?.toLowerCase()
-              .includes(
-                value.toLowerCase()
-              )
-        );
+      setTotalPages(
+        Math.ceil(
+          filtered.length / size
+        )
+      );
 
-        setFilteredProducts(filtered);
+    } catch (error) {
 
-        setTotalPages(
-          Math.ceil(
-            filtered.length / size
-          )
-        );
+      console.log(
+        "SEARCH ERROR:",
+        error
+      );
 
-        setPage(0);
+      setFilteredProducts([]);
 
-      } catch (error) {
+    } finally {
 
-        console.log(
-          "SEARCH ERROR:",
-          error
-        );
-
-      } finally {
-
-        setLoading(false);
-      }
-    };
+      setLoading(false);
+    }
+  };
 
   const addToCart =
     async (product) => {
 
       try {
 
-        const res =
-          await axiosInstance.post(
-            "/cart/add",
-            {
-              productId: product.id,
-              quantity: 1,
-            }
-          );
-
-        console.log(
-          "ADD CART RESPONSE:",
-          res.data
+        await axiosInstance.post(
+          "/cart/add",
+          {
+            productId: product.id,
+            quantity: 1,
+          }
         );
 
-        navigate("/cart");
+        navigate("/user/cart");
 
       } catch (err) {
 
@@ -469,7 +421,6 @@ function UserDashboard() {
       }
     };
 
-  
   return (
 
     <div className="dashboard-container">
@@ -552,21 +503,24 @@ function UserDashboard() {
 
         <div className="search-box">
 
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) =>
-              handleSearch(
-                e.target.value
-              )
-            }
-            className="search-input"
-          />
+
+<input
+  type="text"
+  placeholder="Search products..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSearch(searchTerm);
+    }
+  }}
+  className="search-input"
+/>
 
         </div>
 
-      </div>
+     </div>
 
       <div className="products-section">
 
@@ -598,31 +552,23 @@ function UserDashboard() {
                   selectedCategory.categoryName ||
                   selectedCategory.category_name;
 
-                const response =
-                  await getProductsByCategory(
-                    categoryName
-                  );
+            
+                const allCategoryProducts =
+  await getProductsByCategory(
+    categoryName
+  );
 
-                let filtered =
-                  response?.data?.data ||
-                  response?.data ||
-                  [];
+setFilteredProducts(
+  allCategoryProducts
+);
 
-                if (!Array.isArray(filtered)) {
-
-                  filtered =
-                    filtered?.content || [];
-                }
-
-                setFilteredProducts(filtered);
+setTotalPages(
+  Math.ceil(
+    allCategoryProducts.length / size
+  )
+);
 
                 setSelectedSubCategory(null);
-
-                setTotalPages(
-                  Math.ceil(
-                    filtered.length / size
-                  )
-                );
 
                 setPage(0);
               }}
@@ -650,8 +596,7 @@ function UserDashboard() {
 
                 {
                   sub.subCategoryName ||
-                  sub.sub_category_name ||
-                  sub.name
+                  sub.sub_category_name
                 }
 
               </button>
@@ -669,14 +614,13 @@ function UserDashboard() {
 
           </div>
 
-        // ) : paginatedProducts.length > 0 ? (
         ) : filteredProducts.length > 0 ? (
 
           <>
 
             <div className="products-grid">
 
-             {filteredProducts.map((product) => (
+              {filteredProducts.map((product) => (
 
                 <div
                   key={product.id}
@@ -688,14 +632,14 @@ function UserDashboard() {
                     setCurrentImageIndex(0);
                   }}
                 >
-<img  
+
+                  <img
                     src={
-  Array.isArray(product.images) &&
-  product.images.length > 0
-    ? product.images[0]
-    : product.imageUrl ||
-      "https://via.placeholder.com/300"
-}
+                      Array.isArray(product.imageUrls) &&
+                      product.imageUrls.length > 0
+                        ? product.imageUrls[0]
+                        : "https://via.placeholder.com/300"
+                    }
                     alt={product.name}
                     className="product-img"
                   />
@@ -703,21 +647,15 @@ function UserDashboard() {
                   <div className="product-content">
 
                     <h3 className="product-title">
-
                       {product.name}
-
                     </h3>
 
                     <p className="product-description">
-
                       {product.description}
-
                     </p>
 
                     <h4 className="product-price">
-
                       ₹{product.price}
-
                     </h4>
 
                     <div className="product-actions">
@@ -753,59 +691,55 @@ function UserDashboard() {
                   </div>
 
                 </div>
+
               ))}
 
             </div>
 
-          
+            {totalPages > 1 && (
 
+              <div className="pagination-container">
 
-{totalPages > 1 && (
+                <button
+                  disabled={page === 0}
+                  onClick={() =>
+                    setPage(page - 1)
+                  }
+                  className="page-btn"
+                >
+                  Prev
+                </button>
 
-  <div className="pagination-container">
+                <button
+                  className="page-btn active-page"
+                >
+                  {page + 1}
+                </button>
 
-    <button
-      disabled={page === 0}
-      onClick={() =>
-        setPage(page - 1)
-      }
-      className="page-btn"
-    >
-      Prev
-    </button>
+                <button
+                  disabled={
+                    page + 1 >= totalPages
+                  }
+                  onClick={() =>
+                    setPage(page + 1)
+                  }
+                  className="page-btn"
+                >
+                  Next
+                </button>
 
-    <button
-      className="page-btn active-page"
-    >
-      {page + 1}
-    </button>
+              </div>
 
-    <button
-      disabled={
-        page + 1 >= totalPages
-      }
-      onClick={() =>
-        setPage(page + 1)
-      }
-      className="page-btn"
-    >
-      Next
-    </button>
+            )}
 
-  </div>
-
-)}
           </>
 
         ) : (
 
-
           <div className="empty-container">
 
             <h2 className="empty-text">
-
               Products Not Found
-
             </h2>
 
           </div>
@@ -843,73 +777,75 @@ function UserDashboard() {
 
             <img
               src={
-                selectedProduct.images?.[
-                  currentImageIndex
-                ] ||
-                selectedProduct.imageUrl ||
-                "https://via.placeholder.com/300"
+                Array.isArray(selectedProduct.imageUrls) &&
+                selectedProduct.imageUrls.length > 0
+                  ? selectedProduct.imageUrls[currentImageIndex]
+                  : "https://via.placeholder.com/300"
               }
               alt={selectedProduct.name}
               className="modal-product-img"
             />
 
-            {selectedProduct.images &&
-              selectedProduct.images.length > 1 && (
+            {selectedProduct.imageUrls &&
+              selectedProduct.imageUrls.length > 1 && (
 
-                <>
+              <>
 
-                  <button
-                    className="slider-arrow left-arrow"
-                    onClick={() =>
-                      setCurrentImageIndex(
+                <button
+                  className="slider-arrow left-arrow"
+                  onClick={() =>
 
-                        currentImageIndex === 0
-                          ? selectedProduct.images.length - 1
-                          : currentImageIndex - 1
-                      )
-                    }
-                  >
-                    ❮
-                  </button>
+                    setCurrentImageIndex(
 
-                  <button
-                    className="slider-arrow right-arrow"
-                    onClick={() =>
-                      setCurrentImageIndex(
+                      currentImageIndex === 0
+                        ? selectedProduct.imageUrls.length - 1
+                        : currentImageIndex - 1
+                    )
+                  }
+                >
+                  ❮
+                </button>
 
-                        currentImageIndex ===
-                        selectedProduct.images.length - 1
-                          ? 0
-                          : currentImageIndex + 1
-                      )
-                    }
-                  >
-                    ❯
-                  </button>
+                <button
+                  className="slider-arrow right-arrow"
+                  onClick={() =>
 
-                  <div className="slider-dots">
+                    setCurrentImageIndex(
 
-                    {selectedProduct.images.map(
-                      (_, index) => (
+                      currentImageIndex ===
+                      selectedProduct.imageUrls.length - 1
+                        ? 0
+                        : currentImageIndex + 1
+                    )
+                  }
+                >
+                  ❯
+                </button>
 
-                        <span
-                          key={index}
-                          className={
-                            currentImageIndex === index
-                              ? "dot active-dot"
-                              : "dot"
-                          }
-                          onClick={() =>
-                            setCurrentImageIndex(index)
-                          }
-                        />
-                      )
-                    )}
+                <div className="slider-dots">
 
-                  </div>
+                  {selectedProduct.imageUrls.map(
+                    (_, index) => (
 
-                </>
-              )}
+                    <span
+                      key={index}
+                      className={
+                        currentImageIndex === index
+                          ? "dot active-dot"
+                          : "dot"
+                      }
+                      onClick={() =>
+                        setCurrentImageIndex(index)
+                      }
+                    ></span>
+
+                  ))}
+
+                </div>
+
+              </>
+
+            )}
 
             <div className="modal-product-content">
 
@@ -964,6 +900,9 @@ function UserDashboard() {
 }
 
 export default UserDashboard;
+
+
+
 
 
 
