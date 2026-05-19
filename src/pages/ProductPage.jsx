@@ -241,26 +241,29 @@ function ProductPage() {
         );
       }
 
+if (editingId) {
 
-      if (editingId) {
+  const res =
+    await updateProduct(
+      editingId,
+      data
+    );
 
-        await updateProduct(
-          editingId,
-          data
-        );
+  setSuccessPopup(
+    res.data.data.message ||
+    "Product Updated Successfully"
+  );
 
-        setSuccessPopup(
-          "Product Updated Successfully"
-        );
+} else {
 
-      } else {
+  const res =
+    await createProduct(data);
 
-        await createProduct(data);
-
-        setSuccessPopup(
-          "Product Added Successfully"
-        );
-      }
+  setSuccessPopup(
+    res.data.data.message ||
+    "Product Added Successfully"
+  );
+}
 
 
       fetchProducts();
