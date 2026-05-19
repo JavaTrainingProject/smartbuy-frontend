@@ -24,6 +24,38 @@ export const getAllProducts = (
 };
 
 
+
+
+
+
+
+export const getActiveProducts = (
+  page = 0,
+  size = 6
+) => {
+
+  return axiosInstance.get(
+    `/products/active?page=${page}&size=${size}`
+  );
+};
+
+
+export const getActiveProductsBySubCategory = async (
+  subCategoryId,
+  page = 0,
+  size = 1000
+) => {
+
+  const res = await axiosInstance.get(
+    `/products/subcategory/${subCategoryId}/active?page=${page}&size=${size}`
+  );
+
+  return res?.data?.data?.products || [];
+};
+
+
+
+
 export const getProductById = (id) => {
 
   return axiosInstance.get(

@@ -7,8 +7,9 @@ import { useNavigate } from "react-router-dom";
 import Toast from "../components/Toast";
 
 import {
-  getAllProducts,
-  getProductsByCategory
+  getActiveProducts,
+  getProductsByCategory,
+  getActiveProductsBySubCategory
 } from "../services/productService";
 
 import {
@@ -88,7 +89,7 @@ function UserDashboard() {
       setLoading(true);
 
       const res =
-        await getAllProducts(0,1000);
+        await getActiveProducts(0,1000);
 
       let productData =
         res?.data?.data?.content || [];
@@ -216,6 +217,84 @@ function UserDashboard() {
         setShowDropdown(false);
       }
     };
+// const handleSubCategoryClick =
+//   async (subCategory) => {
+
+//     setLoading(true);
+
+//     try {
+
+//       setSelectedSubCategory(subCategory);
+
+//       const subCategoryId =
+//         subCategory.subCategoryId ||
+//         subCategory.id ||
+//         subCategory.sub_category_id;
+
+//       console.log(
+//         "SUBCATEGORY ID:",
+//         subCategoryId
+//       );
+
+//       const categoryName =
+//         selectedCategory.categoryName ||
+//         selectedCategory.category_name;
+
+//       const categoryProducts =
+//         await getProductsByCategory(
+//           categoryName
+//         );
+
+//       console.log(
+//         "CATEGORY PRODUCTS:",
+//         categoryProducts
+//       );
+
+//       const filteredProducts =
+//         categoryProducts.filter(
+//           (product) => {
+
+//             return Number(
+//               product.subCategoryId
+//             ) === Number(subCategoryId);
+//           }
+//         );
+
+//       console.log(
+//         "FILTERED PRODUCTS:",
+//         filteredProducts
+//       );
+
+//       setFilteredProducts(
+//         filteredProducts
+//       );
+
+//       setTotalPages(
+//         Math.ceil(
+//           filteredProducts.length / size
+//         )
+//       );
+
+//       setPage(0);
+
+//     } catch (error) {
+
+//       console.log(
+//         "SUBCATEGORY ERROR:",
+//         error
+//       );
+
+//       setFilteredProducts([]);
+
+//     } finally {
+
+//       setLoading(false);
+//     }
+//   };
+
+
+
+
 const handleSubCategoryClick =
   async (subCategory) => {
 
@@ -230,47 +309,20 @@ const handleSubCategoryClick =
         subCategory.id ||
         subCategory.sub_category_id;
 
-      console.log(
-        "SUBCATEGORY ID:",
-        subCategoryId
-      );
-
-      const categoryName =
-        selectedCategory.categoryName ||
-        selectedCategory.category_name;
-
-      const categoryProducts =
-        await getProductsByCategory(
-          categoryName
+      const activeProducts =
+        await getActiveProductsBySubCategory(
+          subCategoryId,
+          0,
+          1000
         );
-
-      console.log(
-        "CATEGORY PRODUCTS:",
-        categoryProducts
-      );
-
-      const filteredProducts =
-        categoryProducts.filter(
-          (product) => {
-
-            return Number(
-              product.subCategoryId
-            ) === Number(subCategoryId);
-          }
-        );
-
-      console.log(
-        "FILTERED PRODUCTS:",
-        filteredProducts
-      );
 
       setFilteredProducts(
-        filteredProducts
+        activeProducts
       );
 
       setTotalPages(
         Math.ceil(
-          filteredProducts.length / size
+          activeProducts.length / size
         )
       );
 
@@ -289,7 +341,11 @@ const handleSubCategoryClick =
 
       setLoading(false);
     }
-  };
+};
+
+
+
+
 
   const handleSearch = async (value) => {
 
@@ -300,7 +356,7 @@ const handleSubCategoryClick =
       setLoading(true);
 
       const res =
-        await getAllProducts(0, 1000);
+        await getActiveProducts(0, 1000);
 
       let allProducts =
         res?.data?.data?.content || [];
