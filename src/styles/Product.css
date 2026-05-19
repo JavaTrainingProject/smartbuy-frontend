@@ -318,3 +318,36 @@
     align-items: flex-start;
   }
 }
+
+.toggle-btn {
+  width: 70px;
+  height: 36px;
+  border-radius: 30px;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.toggle-btn.active {
+  background: #16a34a;
+}
+
+.toggle-btn.inactive {
+  background: #9ca3af;
+}
+
+.toggle-circle {
+  width: 28px;
+  height: 28px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  transition: 0.3s;
+}
+
+.toggle-btn.active .toggle-circle {
+  transform: translateX(34px);
+}

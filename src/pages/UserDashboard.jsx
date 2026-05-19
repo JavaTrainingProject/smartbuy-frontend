@@ -264,7 +264,11 @@ function UserDashboard() {
  
       console.log("ADD CART RESPONSE:", res.data);
  
+<<<<<<< HEAD
       navigate("/user/cart");
+=======
+      navigate("/cart");
+>>>>>>> 3a78e4df58ff19dd122dfc9624e8f2e1cb7b8059
     } catch (err) {
       console.log("ADD CART ERROR:", err);
     }
@@ -677,5 +681,9 @@ function UserDashboard() {
   );
 }
  
+<<<<<<< HEAD
 export default UserDashboard;
  
+=======
+export default UserDashboard;
+>>>>>>> 3a78e4df58ff19dd122dfc9624e8f2e1cb7b8059

@@ -233,7 +233,7 @@ export default function WishlistPage() {
                                         <div className="wishlist-buttons">
 
                                             <button
-                                                className="cart-btn"
+                                                className="Wscart-btn"
                                                 onClick={() =>
                                                     handleAddCart(
                                                         item.product_id
