@@ -88,7 +88,7 @@ function UserDashboard() {
       setLoading(true);
 
       const res =
-        await getAllProducts(page, size);
+        await getAllProducts(0,1000);
 
       let productData =
         res?.data?.data?.content || [];
@@ -98,8 +98,9 @@ function UserDashboard() {
       );
 
       const total =
-        res?.data?.data?.totalPages || 0;
-
+  Math.ceil(
+    productData.length / size
+  );
       setProducts(productData);
  
       setFilteredProducts(productData);
@@ -413,6 +414,16 @@ const handleSubCategoryClick =
       }
     };
 
+    const startIndex = page * size;
+
+const endIndex = startIndex + size;
+
+const paginatedProducts =
+  filteredProducts.slice(
+    startIndex,
+    endIndex
+  );
+
   return (
     <div className="dashboard-container">
 
@@ -433,22 +444,22 @@ const handleSubCategoryClick =
 
               <div
                 className="category-card"
-                onClick={async () => {
+               onClick={async () => {
 
-                  await fetchProducts();
+  await fetchProducts();
 
-                  setSelectedCategory(null);
- 
-                  setSelectedSubCategory(null);
- 
-                  setSubCategories([]);
- 
-                  setSearchTerm("");
- 
-                  setShowDropdown(false);
- 
-                  setPage(0);
-                }}
+  setSelectedCategory(null);
+
+  setSelectedSubCategory(null);
+
+  setSubCategories([]);
+
+  setSearchTerm("");
+
+  setShowDropdown(false);
+
+  setPage(0);
+}}
               >
                 All Products
               </div>
@@ -563,9 +574,9 @@ setTotalPages(
                     : "subcategory-btn"
                 }
                 onClick={() =>
-                  handleSubCategoryClick(sub)
-                  handleSubCategoryClick(sub)
-                }
+                 
+  handleSubCategoryClick(sub)
+}
               >
 
                 {
@@ -590,7 +601,7 @@ setTotalPages(
 
           <>
             <div className="products-grid">
-              {filteredProducts.map((product) => (
+              {paginatedProducts.map((product) => (
                 <div
                   key={product.id}
                   className="product-card"
@@ -649,7 +660,7 @@ setTotalPages(
                         }}
                       >
                         ❤️ Wishlist
-                        ❤️ Wishlist
+                        
                       </button>
                     </div>
                   </div>

@@ -1,13 +1,16 @@
 import axiosInstance from "./axiosInstance";
 
 
-export const getProductsByCategory = (
+export const getProductsByCategory = async (
   categoryName
 ) => {
 
-  return axiosInstance.get(
-    `/products/category/${categoryName}`
-  );
+  const res =
+    await axiosInstance.get(
+      `/products/category/${categoryName}`
+    );
+
+  return res?.data?.data || [];
 };
 
 export const getAllProducts = (
@@ -82,7 +85,7 @@ export const softDeleteProduct = (
 };
 
 
-export const toggleProductStatus = (
+export const toggleProductStatus = async (
   id,
   status
 ) => {
