@@ -27,7 +27,6 @@
   font-weight: bold;
 }
 
-/* CART CARD */
 .cart-card {
   width: 80%;
   background: #fff;
@@ -44,7 +43,7 @@
 }
 
 .cart-img {
-  width: 85px;
+  width: 100px;
   height: 85px;
   border-radius: 10px;
   object-fit: cover;
@@ -52,14 +51,14 @@
 
 .cart-info {
   flex: 1;
-  min-width: 250px;   /* IMPORTANT FIX */
+  min-width: 250px;  
 }
 
 .desc {
   font-size: 13px;
   color: #555;
 
-  white-space: normal;   /* allow wrapping */
+  white-space: normal;   
   overflow: visible;
   display: block;
 
@@ -90,17 +89,16 @@
   font-weight: bold;
 }
 
-/* ONLY ONE REMOVE BUTTON */
 .remove-btn {
   background: #ef4444;
   color: white;
   border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 2px 5px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
-/* SUMMARY */
+
 .summary {
   width: 80%;
   margin-top: 20px;
@@ -114,7 +112,6 @@
   border-radius: 14px;
 }
 
-/* PLACE ORDER BUTTON */
 .place-order-btn {
   background: #16a34a;
   color: white;
@@ -125,7 +122,7 @@
   font-weight: bold;
 }
 
-/* POPUP */
+
 .popup {
   position: fixed;
   top: 20px;
