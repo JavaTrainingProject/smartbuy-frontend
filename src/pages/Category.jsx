@@ -93,6 +93,9 @@ function CategoryPage() {
         await API.delete(
           `/admin/categories/${cat.id}`
         );
+        setSuccessMessage(
+          "Category Deactivated Successfully"
+        );
 
       } else {
 
@@ -101,6 +104,9 @@ function CategoryPage() {
           {
             status: "ACTIVE"
           }
+        );
+        setSuccessMessage(
+          "Catgeory Deactivated Successfully"
         );
 
       }

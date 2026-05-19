@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import "../styles/UserBoard.css";
 import "../styles/UserDashboard.css";
 
@@ -20,11 +19,10 @@ import {
 import { addToWishlist } from "../services/wishlistService";
 
 import axiosInstance from "../services/axiosInstance";
-
+ 
 function UserDashboard() {
-
   const [products, setProducts] = useState([]);
-
+ 
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const [categories, setCategories] = useState([]);
@@ -50,7 +48,7 @@ function UserDashboard() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [page, setPage] = useState(0);
-
+ 
   const [totalPages, setTotalPages] = useState(0);
 
   const [loading, setLoading] = useState(false);
@@ -58,11 +56,9 @@ function UserDashboard() {
   const size = 6;
 
   const navigate = useNavigate();
-
+ 
   useEffect(() => {
-
     fetchProducts();
-
     fetchCategories();
 
   }, [page]);
@@ -74,7 +70,7 @@ function UserDashboard() {
       message,
       type
     });
-
+ 
     setTimeout(() => {
 
       setToast({
@@ -87,7 +83,6 @@ function UserDashboard() {
   };
 
   const fetchProducts = async () => {
-
     try {
 
       setLoading(true);
@@ -106,11 +101,10 @@ function UserDashboard() {
         res?.data?.data?.totalPages || 0;
 
       setProducts(productData);
-
+ 
       setFilteredProducts(productData);
-
+ 
       setTotalPages(total);
-
     } catch (err) {
 
       console.error(
@@ -125,14 +119,12 @@ function UserDashboard() {
   };
 
   const fetchCategories = async () => {
-
     try {
 
       const res =
         await getActiveCategories();
 
       setCategories(res || []);
-
     } catch (err) {
 
       console.error(
@@ -422,26 +414,21 @@ const handleSubCategoryClick =
     };
 
   return (
-
     <div className="dashboard-container">
 
       <div className="top-controls">
 
         <div className="category-panel">
-
           <button
             className="dropdown-btn"
             onClick={() =>
-              setShowDropdown(
-                !showDropdown
-              )
+              setShowDropdown(!showDropdown)
             }
           >
             Categories ▼
           </button>
-
+ 
           {showDropdown && (
-
             <div className="dropdown-box">
 
               <div
@@ -451,15 +438,15 @@ const handleSubCategoryClick =
                   await fetchProducts();
 
                   setSelectedCategory(null);
-
+ 
                   setSelectedSubCategory(null);
-
+ 
                   setSubCategories([]);
-
+ 
                   setSearchTerm("");
-
+ 
                   setShowDropdown(false);
-
+ 
                   setPage(0);
                 }}
               >
@@ -467,11 +454,9 @@ const handleSubCategoryClick =
               </div>
 
               {categories.map((cat) => (
-
                 <div
                   key={
-                    cat.id ||
-                    cat.category_id
+                    cat.id || cat.category_id
                   }
                   className="category-card"
                   onClick={() =>
@@ -485,20 +470,13 @@ const handleSubCategoryClick =
                   }
 
                 </div>
-
               ))}
-
             </div>
           )}
-
         </div>
 
         <div className="products-heading">
-
-          <h1>
-            Products
-          </h1>
-
+          <h1>Products</h1>
         </div>
 
         <div className="search-box">
@@ -525,7 +503,6 @@ const handleSubCategoryClick =
       <div className="products-section">
 
         {selectedCategory && (
-
           <h2 className="category-title">
 
             {
@@ -537,9 +514,7 @@ const handleSubCategoryClick =
         )}
 
         {subCategories.length > 0 && (
-
           <div className="subcategory-container">
-
             <button
               className={
                 selectedSubCategory === null
@@ -547,7 +522,6 @@ const handleSubCategoryClick =
                   : "subcategory-btn"
               }
               onClick={async () => {
-
                 const categoryName =
                   selectedCategory.categoryName ||
                   selectedCategory.category_name;
@@ -577,7 +551,6 @@ setTotalPages(
             </button>
 
             {subCategories.map((sub) => (
-
               <button
                 key={
                   sub.id ||
@@ -591,6 +564,7 @@ setTotalPages(
                 }
                 onClick={() =>
                   handleSubCategoryClick(sub)
+                  handleSubCategoryClick(sub)
                 }
               >
 
@@ -600,9 +574,7 @@ setTotalPages(
                 }
 
               </button>
-
             ))}
-
           </div>
         )}
 
@@ -617,11 +589,8 @@ setTotalPages(
         ) : filteredProducts.length > 0 ? (
 
           <>
-
             <div className="products-grid">
-
               {filteredProducts.map((product) => (
-
                 <div
                   key={product.id}
                   className="product-card"
@@ -632,7 +601,6 @@ setTotalPages(
                     setCurrentImageIndex(0);
                   }}
                 >
-
                   <img
                     src={
                       Array.isArray(product.imageUrls) &&
@@ -643,29 +611,26 @@ setTotalPages(
                     alt={product.name}
                     className="product-img"
                   />
-
+ 
                   <div className="product-content">
-
                     <h3 className="product-title">
                       {product.name}
                     </h3>
-
+ 
                     <p className="product-description">
                       {product.description}
                     </p>
-
+ 
                     <h4 className="product-price">
                       ₹{product.price}
                     </h4>
-
+ 
                     <div className="product-actions">
-
                       <button
                         className="cart-btn"
                         onClick={(e) => {
-
                           e.stopPropagation();
-
+ 
                           addToCart(product);
                         }}
                       >
@@ -684,16 +649,12 @@ setTotalPages(
                         }}
                       >
                         ❤️ Wishlist
+                        ❤️ Wishlist
                       </button>
-
                     </div>
-
                   </div>
-
                 </div>
-
               ))}
-
             </div>
 
             {totalPages > 1 && (
@@ -733,19 +694,13 @@ setTotalPages(
             )}
 
           </>
-
         ) : (
-
           <div className="empty-container">
-
             <h2 className="empty-text">
               Products Not Found
             </h2>
-
           </div>
-
         )}
-
       </div>
 
       {toast.show && (
@@ -758,23 +713,19 @@ setTotalPages(
       )}
 
       {selectedProduct && (
-
         <div className="product-modal-overlay">
-
           <div className="product-modal">
-
             <button
               className="close-btn"
               onClick={() => {
-
                 setSelectedProduct(null);
-
+ 
                 setCurrentImageIndex(0);
               }}
             >
               ✖
             </button>
-
+ 
             <img
               src={
                 Array.isArray(selectedProduct.imageUrls) &&
@@ -890,15 +841,12 @@ setTotalPages(
             </div>
 
           </div>
-
         </div>
-
       )}
-
     </div>
   );
 }
-
+ 
 export default UserDashboard;
 
 
