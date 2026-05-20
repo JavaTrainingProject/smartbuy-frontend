@@ -4,12 +4,13 @@ import {
   getAllProducts,
   createProduct,
   updateProduct,
-  softDeleteProduct,
 } from "../services/productService";
 
-import API from "../services/axiosInstance";
+import {
+  getAllSubCategories,
+} from "../services/subCategoryService";
 
-import { getAllSubCategories } from "../services/subCategoryService";
+import API from "../services/axiosInstance";
 
 import "../styles/product.css";
 
@@ -31,7 +32,6 @@ function ProductPage() {
 
   const [editingId, setEditingId] = useState(null);
 
-
   const [page, setPage] = useState(0);
 
   const [totalPages, setTotalPages] = useState(0);
@@ -46,13 +46,11 @@ function ProductPage() {
     image: null,
   });
 
-
   useEffect(() => {
 
     fetchProducts();
 
   }, [page]);
-
 
   useEffect(() => {
 
@@ -61,7 +59,6 @@ function ProductPage() {
     fetchSubCategories();
 
   }, []);
-
 
   const fetchProducts = async () => {
 
@@ -72,7 +69,6 @@ function ProductPage() {
 
       const data =
         response.data.data;
-
 
       const sortedProducts =
         data.content.sort(
@@ -96,7 +92,6 @@ function ProductPage() {
     }
   };
 
-
   const fetchCategories = async () => {
 
     try {
@@ -112,10 +107,12 @@ function ProductPage() {
 
     } catch (error) {
 
-      console.log(error);
+      console.log(
+        "CATEGORY ERROR:",
+        error
+      );
     }
   };
-
 
   const fetchSubCategories = async () => {
 
@@ -124,25 +121,61 @@ function ProductPage() {
       const response =
         await getAllSubCategories();
 
-      setSubCategories(
-        response.data.data.content || []
+      const data =
+        response?.data?.data?.content ||
+        response?.data?.content ||
+        response?.data ||
+        [];
+
+      setSubCategories(data);
+
+    } catch (error) {
+
+      console.log(
+        "SUBCATEGORY ERROR:",
+        error
+      );
+    }
+  };
+
+  const fetchSubCategoriesByCategory = async (
+    categoryId
+  ) => {
+
+    try {
+
+      const response =
+        await API.get(
+          `/subcategory/categories/${categoryId}/subcategories?page=0&size=100`
+        );
+
+      console.log(
+        "FILTERED SUBCATEGORIES:",
+        response.data.data
+      );
+
+      setFilteredSubCategories(
+        response.data.data || []
       );
 
     } catch (error) {
 
-      console.log(error);
+      console.log(
+        "FILTER ERROR:",
+        error
+      );
+
+      setFilteredSubCategories([]);
     }
   };
 
-
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
 
     const {
       name,
       value,
       files,
     } = e.target;
-
 
     if (name === "image") {
 
@@ -163,19 +196,7 @@ function ProductPage() {
       return;
     }
 
-
     if (name === "categoryId") {
-
-      const filtered =
-        subCategories.filter(
-          (sub) =>
-            String(sub.categoryId) ===
-            String(value)
-        );
-
-      setFilteredSubCategories(
-        filtered
-      );
 
       setFormData({
         ...formData,
@@ -183,16 +204,18 @@ function ProductPage() {
         subCategoryId: "",
       });
 
+      await fetchSubCategoriesByCategory(
+        value
+      );
+
       return;
     }
-
 
     setFormData({
       ...formData,
       [name]: value,
     });
   };
-
 
   const handleSubmit = async (e) => {
 
@@ -232,7 +255,6 @@ function ProductPage() {
         JSON.stringify(productData)
       );
 
-
       if (formData.image) {
 
         data.append(
@@ -241,36 +263,33 @@ function ProductPage() {
         );
       }
 
-if (editingId) {
+      if (editingId) {
 
-  const res =
-    await updateProduct(
-      editingId,
-      data
-    );
+        const res =
+          await updateProduct(
+            editingId,
+            data
+          );
 
-  setSuccessPopup(
-    res.data.data.message ||
-    "Product Updated Successfully"
-  );
+        setSuccessPopup(
+          res.data.message ||
+          "Product Updated Successfully"
+        );
 
-} else {
+      } else {
 
-  const res =
-    await createProduct(data);
+        const res =
+          await createProduct(data);
 
-  setSuccessPopup(
-    res.data.data.message ||
-    "Product Added Successfully"
-  );
-}
-
+        setSuccessPopup(
+          res.data.message ||
+          "Product Added Successfully"
+        );
+      }
 
       fetchProducts();
 
-
       setShowModal(false);
-
 
       setEditingId(null);
 
@@ -304,7 +323,6 @@ if (editingId) {
     }
   };
 
-
   const handleEdit = (product) => {
 
     setEditingId(product.id);
@@ -335,17 +353,15 @@ if (editingId) {
     });
 
     setImagePreview(
-      product.imageUrls || ""
+      product.imageUrl || ""
     );
 
     setShowModal(true);
   };
 
-
   const handleToggle = async (product) => {
 
     try {
-
 
       if (product.status === "ACTIVE") {
 
@@ -358,7 +374,6 @@ if (editingId) {
         );
 
       } else {
-
 
         await API.patch(
           `/products/${product.id}/status?status=ACTIVE`
@@ -380,9 +395,9 @@ if (editingId) {
     } catch (error) {
 
       console.log(
-        error.response?.data || error.message
+        error.response?.data ||
+        error.message
       );
-
     }
   };
 
@@ -422,7 +437,6 @@ if (editingId) {
 
       </div>
 
-
       {successPopup && (
 
         <div className="success-popup">
@@ -431,7 +445,6 @@ if (editingId) {
 
         </div>
       )}
-
 
       {showModal && (
 
@@ -463,13 +476,12 @@ if (editingId) {
               onSubmit={handleSubmit}
             >
 
-
               {!editingId && (
 
                 <>
 
-
                   <select
+                    className="category-select"
                     name="categoryId"
                     value={formData.categoryId}
                     onChange={handleChange}
@@ -494,12 +506,10 @@ if (editingId) {
                   </select>
 
                   <select
+                    className="subcategory-select"
                     name="subCategoryId"
                     value={formData.subCategoryId}
                     onChange={handleChange}
-                    disabled={
-                      !formData.categoryId
-                    }
                     required
                   >
 
@@ -523,7 +533,6 @@ if (editingId) {
                 </>
               )}
 
-
               <input
                 type="text"
                 name="name"
@@ -533,30 +542,23 @@ if (editingId) {
                 required
               />
 
+              <input
+                type="number"
+                name="price"
+                placeholder="Price"
+                value={formData.price}
+                onChange={handleChange}
+                required
+              />
 
-             <input
-  type="number"
-  name="price"
-  placeholder="Price"
-  value={formData.price}
-  onChange={handleChange}
-  min="2000"
-  max="200000"
-  step="1"
-  required
-/>
-
-
-   <input
-  type="number"
-  name="quantity"
-  placeholder="Stock"
-  value={formData.quantity}
-  onChange={handleChange}
-  min="1"
-  step="1"
-  required
-/>
+              <input
+                type="number"
+                name="quantity"
+                placeholder="Stock"
+                value={formData.quantity}
+                onChange={handleChange}
+                required
+              />
 
               <textarea
                 name="description"
@@ -565,14 +567,12 @@ if (editingId) {
                 onChange={handleChange}
               />
 
-
               <input
                 type="file"
                 name="image"
                 accept="image/*"
                 onChange={handleChange}
               />
-
 
               {imagePreview && (
 
@@ -585,7 +585,6 @@ if (editingId) {
 
                 </div>
               )}
-
 
               <div className="form-buttons">
 
@@ -617,7 +616,6 @@ if (editingId) {
         </div>
       )}
 
-
       <div className="product-grid">
 
         {products.map((product) => (
@@ -626,7 +624,6 @@ if (editingId) {
             className="product-item"
             key={product.id}
           >
-
 
             <div className="image-box">
 
@@ -653,17 +650,19 @@ if (editingId) {
               </button>
 
               <button
-                className={`toggle-btn ${product.status === "ACTIVE"
+                className={`toggle-btn ${
+                  product.status === "ACTIVE"
                     ? "active"
                     : "inactive"
-                  }`}
-                onClick={() => handleToggle(product)}
+                }`}
+                onClick={() =>
+                  handleToggle(product)
+                }
               >
                 <div className="toggle-circle"></div>
               </button>
 
             </div>
-
 
             <div className="product-info">
 
@@ -703,7 +702,6 @@ if (editingId) {
         ))}
 
       </div>
-
 
       <div className="pagination">
 
