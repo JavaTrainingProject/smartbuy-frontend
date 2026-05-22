@@ -211,6 +211,20 @@ function ProductPage() {
       return;
     }
 
+    if (name === "quantity") {
+
+      if (value.includes(".") || Number(value) < 1) {
+        return;
+      }
+    }
+
+    if (name === "price") {
+
+      if (value.includes(".")) {
+        return;
+      }
+    }
+
     setFormData({
       ...formData,
       [name]: value,
@@ -222,6 +236,31 @@ function ProductPage() {
     e.preventDefault();
 
     try {
+
+      const price = Number(formData.price);
+
+      const quantity = Number(formData.quantity);
+
+      if (price < 2000 || price > 200000) {
+
+        alert("Price must be between 2000 and 200000");
+
+        return;
+      }
+
+      if (quantity < 1) {
+
+        alert("Stock must be at least 1");
+
+        return;
+      }
+
+      if (!Number.isInteger(quantity)) {
+
+        alert("Stock cannot contain decimal values");
+
+        return;
+      }
 
       const productData = {
 
@@ -466,7 +505,7 @@ function ProductPage() {
                   setShowModal(false)
                 }
               >
-                ×
+
               </button>
 
             </div>
@@ -548,6 +587,9 @@ function ProductPage() {
                 placeholder="Price"
                 value={formData.price}
                 onChange={handleChange}
+                min="2000"
+                max="200000"
+                step="1"
                 required
               />
 
@@ -557,6 +599,8 @@ function ProductPage() {
                 placeholder="Stock"
                 value={formData.quantity}
                 onChange={handleChange}
+                min="1"
+                step="1"
                 required
               />
 
@@ -650,11 +694,10 @@ function ProductPage() {
               </button>
 
               <button
-                className={`toggle-btn ${
-                  product.status === "ACTIVE"
-                    ? "active"
-                    : "inactive"
-                }`}
+                className={`toggle-btn ${product.status === "ACTIVE"
+                  ? "active"
+                  : "inactive"
+                  }`}
                 onClick={() =>
                   handleToggle(product)
                 }
