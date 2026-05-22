@@ -4,14 +4,14 @@
   font-family: Arial, sans-serif;
 }
 
-/* Layout */
+
 .order-layout {
   display: flex;
   width: 100%;
   min-height: 100vh;
 }
 
-/* Sidebar */
+
 .user-navbar {
   width: 240px;
   flex-shrink: 0;
@@ -19,7 +19,7 @@
   border-right: 1px solid #eaeaea;
 }
 
-/* Main */
+
 .order-main {
   flex: 1;
   padding: 30px;
@@ -34,13 +34,11 @@
   margin-bottom: 20px;
 }
 
-/* WRAPPER */
 .order-content-wrapper {
   width: 100%;
   max-width: 900px;
 }
 
-/* ORDER CARD */
 .order-card {
   background: #fff;
   border-radius: 14px;
@@ -56,7 +54,7 @@
   transform: translateY(-2px);
 }
 
-/* TOP */
+
 .order-top {
   display: flex;
   justify-content: space-between;
@@ -78,7 +76,6 @@
   color: #0369a1;
 }
 
-/* ITEMS */
 .order-items {
   display: flex;
   flex-direction: column;
@@ -114,7 +111,6 @@
   color: #555;
 }
 
-/* TOTAL */
 .order-total {
   margin-top: 15px;
   text-align: right;
@@ -123,7 +119,6 @@
   color: #111;
 }
 
-/* EMPTY */
 .order-content-wrapper p {
   text-align: center;
   color: #777;
