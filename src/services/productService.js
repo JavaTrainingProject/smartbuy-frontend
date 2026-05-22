@@ -1,13 +1,16 @@
 import axiosInstance from "./axiosInstance";
 
 
-export const getProductsByCategory = (
+export const getProductsByCategory = async (
   categoryName
 ) => {
 
-  return axiosInstance.get(
-    `/products/category/${categoryName}`
-  );
+  const res =
+    await axiosInstance.get(
+      `/products/category/${categoryName}`
+    );
+
+  return res?.data?.data || [];
 };
 
 export const getAllProducts = (
@@ -19,6 +22,38 @@ export const getAllProducts = (
     `/products?page=${page}&size=${size}`
   );
 };
+
+
+
+
+
+
+
+export const getActiveProducts = (
+  page = 0,
+  size = 6
+) => {
+
+  return axiosInstance.get(
+    `/products/active?page=${page}&size=${size}`
+  );
+};
+
+
+export const getActiveProductsBySubCategory = async (
+  subCategoryId,
+  page = 0,
+  size = 1000
+) => {
+
+  const res = await axiosInstance.get(
+    `/products/subcategory/${subCategoryId}/active?page=${page}&size=${size}`
+  );
+
+  return res?.data?.data?.products || [];
+};
+
+
 
 
 export const getProductById = (id) => {
@@ -82,12 +117,22 @@ export const softDeleteProduct = (
 };
 
 
-export const toggleProductStatus = (
+export const toggleProductStatus = async (
   id,
   status
 ) => {
 
-  return axiosInstance.patch(
-    `/products/${id}/status?status=${status}`
+  const res =
+    await axiosInstance.patch(
+      `/products/${id}/status?status=${status}`
+    );
+
+  return res.data;
+};
+
+
+export const searchProducts = async (productName) => {
+  return await axiosInstance.get(
+    `/products/getall-product?productName=${productName}`
   );
 };
