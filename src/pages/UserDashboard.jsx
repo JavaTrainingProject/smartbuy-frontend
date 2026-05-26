@@ -13,6 +13,11 @@ import {
   getActiveCategories,
   getSubCategoriesByCategory,
 } from "../services/categoryService";
+
+import {
+  getActiveProducts,
+  getActiveProductsBySubCategory,
+} from "../services/productService";
  
 import { addToWishlist } from "../services/wishlistService";
  
@@ -51,6 +56,9 @@ function UserDashboard() {
  
   const [loading, setLoading] = useState(false);
  
+  const [isHomePage, setIsHomePage] =
+    useState(true);
+
   const size = 6;
  
   const navigate = useNavigate();
@@ -58,7 +66,7 @@ function UserDashboard() {
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, [page]);
+  }, []);
  
   const showToast = (message, type) => {
     setToast({
@@ -76,30 +84,36 @@ function UserDashboard() {
     }, 3000);
   };
  
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
- 
-      const res = await getAllProducts(page, size);
- 
-      console.log("ALL PRODUCTS:", res);
- 
-      const productData = res?.data?.data?.content || [];
- 
-      const total = res?.data?.data?.totalPages || 0;
- 
-      setProducts(productData);
- 
-      setFilteredProducts(productData);
- 
-      setTotalPages(total);
-    } catch (err) {
-      console.error("PRODUCT ERROR:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
- 
+ const fetchProducts = async () => {
+  try {
+    setLoading(true);
+
+    const res = await getActiveProducts(0, 1000);
+
+    console.log("ALL PRODUCTS:", res);
+
+    const productData =
+      res?.data?.data?.content || [];
+
+    setProducts(productData);
+
+    setFilteredProducts(productData);
+
+    setTotalPages(
+      Math.ceil(productData.length / size)
+    );
+
+    setPage(0);
+
+    setIsHomePage(true);
+
+  } catch (err) {
+    console.error("PRODUCT ERROR:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
   const fetchCategories = async () => {
     try {
       const res = await getActiveCategories();
@@ -125,6 +139,14 @@ function UserDashboard() {
         await getProductsByCategory(categoryName);
  
       setFilteredProducts(filtered);
+setTotalPages(
+  Math.ceil(filtered.length / size)
+);
+
+setPage(0);
+
+setIsHomePage(false);
+ 
  
       const categoryId =
         category.id || category.category_id;
@@ -160,44 +182,55 @@ function UserDashboard() {
     setShowDropdown(false);
   };
  
-  const handleSubCategoryClick = async (subCategory) => {
-    setLoading(true);
- 
-    try {
-      setSelectedSubCategory(subCategory);
- 
-      await new Promise((resolve) =>
-        setTimeout(resolve, 500)
-      );
- 
-      const subCategoryName =
-        subCategory.subCategoryName ||
-        subCategory.sub_category_name ||
-        subCategory.name;
- 
-      const filtered = products.filter(
-        (product) =>
-          (
-            product.subCategoryName ||
-            product.sub_category_name
-          )
-            ?.toLowerCase()
-            .trim() ===
-          subCategoryName.toLowerCase().trim()
-      );
- 
-      setFilteredProducts(filtered);
- 
-      setPage(0);
-    } catch (error) {
-      console.log("SUBCATEGORY ERROR:", error);
- 
-      setFilteredProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
- 
+  const handleSubCategoryClick =
+    async (subCategory) => {
+      setLoading(true);
+
+      try {
+        setSelectedSubCategory(
+          subCategory
+        );
+
+        setIsHomePage(false);
+
+        const subCategoryName =
+          subCategory.subCategoryName ||
+          subCategory.sub_category_name ||
+          subCategory.name;
+
+        const filtered =
+          products.filter(
+            (product) =>
+              (
+                product.subCategoryName ||
+                product.sub_category_name
+              )
+                ?.toLowerCase()
+                .trim() ===
+              subCategoryName
+                .toLowerCase()
+                .trim()
+          );
+
+        setFilteredProducts(filtered);
+
+        setTotalPages(
+          Math.ceil(filtered.length / size)
+        );
+
+        setPage(0);
+      } catch (error) {
+        console.log(
+          "SUBCATEGORY ERROR:",
+          error
+        );
+
+        setFilteredProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
   const handleSearch = async (value) => {
     setLoading(true);
  
@@ -207,8 +240,11 @@ function UserDashboard() {
  
     try {
       setSearchTerm(value);
- 
-      let filtered = products;
+
+
+      let filtered = Array.isArray(products)
+  ? products
+  : [];
  
       if (selectedCategory) {
         filtered = filtered.filter(
@@ -237,14 +273,24 @@ function UserDashboard() {
       }
  
       filtered = filtered.filter((product) =>
-        product.name
-          ?.toLowerCase()
-          .includes(value.toLowerCase())
-      );
+  (
+    product.name ||
+    product.productName ||
+    product.product_name ||
+    ""
+  )
+    ?.toLowerCase()
+    .trim()
+    .includes(value.toLowerCase().trim())
+);
  
       setFilteredProducts(filtered);
- 
-      setPage(0);
+
+setTotalPages(
+  Math.ceil(filtered.length / size)
+);
+
+setPage(0);
     } catch (error) {
       console.log("SEARCH ERROR:", error);
     } finally {
@@ -302,6 +348,16 @@ const addToCart = async (product) => {
     }
   };
  
+
+  const startIndex = page * size;
+
+const endIndex = startIndex + size;
+
+const paginatedProducts =
+  filteredProducts.slice(
+    startIndex,
+    endIndex
+  );
   return (
     <div className="dashboard-container">
       <div className="top-controls">
@@ -394,12 +450,16 @@ const addToCart = async (product) => {
                   selectedCategory.categoryName ||
                   selectedCategory.category_name;
  
-                const filtered =
-                  await getProductsByCategory(
-                    categoryName
-                  );
- 
-                setFilteredProducts(filtered);
+             const filtered =
+  await getProductsByCategory(categoryName);
+
+setFilteredProducts(filtered);
+
+setTotalPages(
+  Math.ceil(filtered.length / size)
+);
+
+setPage(0);
  
                 setSelectedSubCategory(null);
               }}
@@ -438,7 +498,7 @@ const addToCart = async (product) => {
         ) : filteredProducts.length > 0 ? (
           <>
             <div className="products-grid">
-              {filteredProducts.map((product) => (
+              {paginatedProducts.map((product) => (
                 <div
                   key={product.id}
                   className="product-card"
@@ -449,11 +509,13 @@ const addToCart = async (product) => {
                   }}
                 >
                   <img
-                    src={
-                      product.images?.[0] ||
-                      product.imageUrl ||
-                      "https://via.placeholder.com/300"
-                    }
+                   src={
+  Array.isArray(product.images) &&
+  product.images.length > 0
+    ? product.images[0]
+    : product.imageUrl ||
+      "https://via.placeholder.com/300"
+}
                     alt={product.name}
                     className="product-img"
                   />
@@ -498,8 +560,9 @@ const addToCart = async (product) => {
                 </div>
               ))}
             </div>
- 
-            <div className="pagination-container">
+
+         {totalPages > 1 && (
+  <div className="pagination-container">
               <button
                 disabled={page === 0}
                 onClick={() =>
@@ -540,8 +603,8 @@ const addToCart = async (product) => {
  
               <button
                 disabled={
-                  page + 1 === totalPages
-                }
+  page + 1 >= totalPages
+}
                 onClick={() =>
                   setPage(page + 1)
                 }
@@ -550,6 +613,7 @@ const addToCart = async (product) => {
                 Next
               </button>
             </div>
+         )}
           </>
         ) : (
           <div className="empty-container">
@@ -581,17 +645,17 @@ const addToCart = async (product) => {
               ✖
             </button>
  
-            <img
-              src={
-                selectedProduct.images?.[
-                  currentImageIndex
-                ] ||
-                selectedProduct.imageUrl ||
-                "https://via.placeholder.com/300"
-              }
-              alt={selectedProduct.name}
-              className="modal-product-img"
-            />
+           <img
+  src={
+    Array.isArray(selectedProduct.images) &&
+    selectedProduct.images.length > 0
+      ? selectedProduct.images[currentImageIndex]
+      : selectedProduct.imageUrl ||
+        "https://via.placeholder.com/300"
+  }
+  alt={selectedProduct.name}
+  className="modal-product-img"
+/>
  
             {selectedProduct.images &&
               selectedProduct.images.length >
