@@ -500,7 +500,7 @@ function ProductPage() {
               </h3>
 
               <button
-                className="close-btn"
+                className="arclose-btn"
                 onClick={() =>
                   setShowModal(false)
                 }

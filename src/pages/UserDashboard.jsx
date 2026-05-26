@@ -182,54 +182,58 @@ setIsHomePage(false);
     setShowDropdown(false);
   };
  
-  const handleSubCategoryClick =
-    async (subCategory) => {
-      setLoading(true);
 
-      try {
-        setSelectedSubCategory(
-          subCategory
+const handleSubCategoryClick =
+  async (subCategory) => {
+
+    setLoading(true);
+
+    try {
+
+      setSelectedSubCategory(
+        subCategory
+      );
+
+      setIsHomePage(false);
+
+      const subCategoryId =
+        subCategory.id ||
+        subCategory.subCategoryId ||
+        subCategory.sub_category_id;
+
+      const filtered =
+        await getActiveProductsBySubCategory(
+          subCategoryId
         );
 
-        setIsHomePage(false);
+      console.log(
+        "FILTERED PRODUCTS:",
+        filtered
+      );
 
-        const subCategoryName =
-          subCategory.subCategoryName ||
-          subCategory.sub_category_name ||
-          subCategory.name;
+      setFilteredProducts(filtered);
 
-        const filtered =
-          products.filter(
-            (product) =>
-              (
-                product.subCategoryName ||
-                product.sub_category_name
-              )
-                ?.toLowerCase()
-                .trim() ===
-              subCategoryName
-                .toLowerCase()
-                .trim()
-          );
+      setTotalPages(
+        Math.ceil(filtered.length / size)
+      );
 
-        setFilteredProducts(filtered);
+      setPage(0);
 
-        setTotalPages(
-          Math.ceil(filtered.length / size)
-        );
+    } catch (error) {
 
-        setPage(0);
-      } catch (error) {
-        console.log(
-          "SUBCATEGORY ERROR:",
-          error
-        );
+      console.log(
+        "SUBCATEGORY ERROR:",
+        error
+      );
 
-        setFilteredProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setFilteredProducts([]);
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
 
   const handleSearch = async (value) => {
     setLoading(true);
@@ -561,59 +565,31 @@ setPage(0);
               ))}
             </div>
 
-         {totalPages > 1 && (
+      {totalPages > 1 && (
   <div className="pagination-container">
-              <button
-                disabled={page === 0}
-                onClick={() =>
-                  setPage(page - 1)
-                }
-                className="page-btn"
-              >
-                Prev
-              </button>
- 
-              {[...Array(totalPages)]
-                .slice(
-                  Math.floor(page / 3) * 3,
-                  Math.floor(page / 3) * 3 +
-                    3
-                )
-                .map((_, index) => {
-                  const actualPage =
-                    Math.floor(page / 3) * 3 +
-                    index;
- 
-                  return (
-                    <button
-                      key={actualPage}
-                      onClick={() =>
-                        setPage(actualPage)
-                      }
-                      className={
-                        page === actualPage
-                          ? "page-btn active-page"
-                          : "page-btn"
-                      }
-                    >
-                      {actualPage + 1}
-                    </button>
-                  );
-                })}
- 
-              <button
-                disabled={
-  page + 1 >= totalPages
-}
-                onClick={() =>
-                  setPage(page + 1)
-                }
-                className="page-btn"
-              >
-                Next
-              </button>
-            </div>
-         )}
+
+    <button
+      disabled={page === 0}
+      onClick={() => setPage(page - 1)}
+      className="page-btn"
+    >
+      Prev
+    </button>
+
+    <span className="page-info">
+      Page {page + 1} of {totalPages}
+    </span>
+
+    <button
+      disabled={page + 1 >= totalPages}
+      onClick={() => setPage(page + 1)}
+      className="page-btn"
+    >
+      Next
+    </button>
+
+  </div>
+)}
           </>
         ) : (
           <div className="empty-container">
@@ -736,7 +712,7 @@ setPage(0);
                     addToCart(selectedProduct)
                   }
                 >
-                  🛒 Add Cart
+                  🛒 Add to Cart
                 </button>
  
                 <button
